@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automated Reporting System · Mayowa Alamutu</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --ink: #111827;
+    --green: #235D3B;
+    --green-light: #2A8851;
+    --green-pale: #D9ECD4;
+    --yellow-pale: #FFF6C4;
+    --yellow-border: #CFBA49;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --surface: #ffffff;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; line-height: 1.7; }
+
+  /* BACK BAR */
+  .back-bar { padding: 18px 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .back-link { text-decoration: none; color: var(--muted); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; transition: color 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+  .back-link:hover { color: var(--green); }
+  .github-link { text-decoration: none; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; color: var(--green); border: 1px solid var(--green); padding: 8px 18px; transition: all 0.2s; }
+  .github-link:hover { background: var(--green); color: white; }
+
+  /* HERO */
+  .hero { background: var(--green); color: white; padding: 72px 56px 56px; }
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+  .hero-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .hero-eyebrow::before { content: ''; width: 24px; height: 1px; background: rgba(255,255,255,0.4); }
+  .hero-title { font-family: 'DM Serif Display', serif; font-size: clamp(36px, 5vw, 64px); line-height: 1.05; letter-spacing: -1px; margin-bottom: 20px; }
+  .hero-title em { font-style: italic; color: #86efac; }
+  .hero-sub { font-size: 17px; font-weight: 300; color: rgba(255,255,255,0.75); max-width: 620px; line-height: 1.7; margin-bottom: 40px; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 48px; }
+  .tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.65); }
+  .tag.active { border-color: #86efac; color: #86efac; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 20px; }
+  .kpi-val { font-family: 'DM Serif Display', serif; font-size: 36px; color: #86efac; line-height: 1; }
+  .kpi-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-top: 6px; }
+
+  /* BODY */
+  .body { max-width: 1100px; margin: 0 auto; padding: 64px 56px 96px; }
+  .block { margin-bottom: 64px; }
+  .block-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--green); margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+  .block-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .block-title { font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 16px; }
+  .block-text { font-size: 15px; font-weight: 300; color: #374151; line-height: 1.8; max-width: 720px; }
+  .block-text + .block-text { margin-top: 12px; }
+
+  /* REPORT TABS */
+  .tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 32px; }
+  .tab { padding: 12px 24px; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* EMAIL MOCK */
+  .email-mock { background: white; border: 1px solid var(--border); max-width: 680px; font-family: Arial, sans-serif; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  .email-header-bar { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .email-subject { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  .email-meta { font-size: 12px; color: var(--muted); line-height: 1.8; }
+  .email-meta span { color: var(--ink); font-weight: 500; }
+  .email-attachment { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 12px; background: #f3f4f6; border: 1px solid var(--border); font-size: 12px; color: var(--muted); width: fit-content; }
+  .attach-icon { width: 28px; height: 28px; background: #1d6f42; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 700; }
+  .email-body { padding: 0; }
+
+  /* Email content — exact replica of real reports with dummy data */
+  .em-wrap { background: #f5f5f5; padding: 20px 10px; }
+  .em-card { background: white; max-width: 620px; margin: 0 auto; }
+  .em-hdr { background: #235D3B; padding: 24px 20px; text-align: center; }
+  .em-hdr h2 { color: white; font-size: 20px; margin: 0 0 6px; }
+  .em-hdr p { color: #ccffcc; font-size: 12px; margin: 0; }
+  .em-content { padding: 24px 20px; }
+  .em-section-title { font-size: 15px; font-weight: bold; color: #235D3B; border-bottom: 2px solid #D9ECD4; padding-bottom: 4px; margin: 0 0 12px; }
+  .em-summary-box { background: #D9ECD4; border-left: 4px solid #2A8851; padding: 16px; margin-bottom: 20px; }
+  .em-comp-box { background: #FFF6C4; border-left: 4px solid #CFBA49; padding: 16px; }
+  .em-stat { font-size: 14px; margin: 6px 0 0; }
+  .em-stat strong { color: #1A201D; }
+  .em-stat .val { color: #2A8851; font-weight: bold; }
+  .em-bullet { font-size: 12px; color: #333; margin: 2px 0 2px 16px; }
+  .em-divider { border: none; border-top: 1px solid #c2d9bb; margin: 8px 0; }
+  .em-ydivider { border: none; border-top: 1px solid #e8d87a; margin: 8px 0; }
+  .em-comp-item { font-size: 13px; margin: 6px 0 10px; line-height: 1.6; }
+  .em-comp-item strong { color: #1A201D; }
+  .em-growth { color: #2A8851; font-weight: bold; }
+  .em-decline { color: #E46159; font-weight: bold; }
+  .em-footer { font-size: 11px; color: #888; text-align: center; margin: 20px 0 0; }
+
+  /* ARCHITECTURE DIAGRAM */
+  .arch-diagram { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-top: 28px; }
+  .arch-step { padding: 24px 16px; background: white; border: 1px solid var(--border); border-right: none; position: relative; }
+  .arch-step:last-child { border-right: 1px solid var(--border); }
+  .arch-step:hover { background: #f0fdf4; }
+  .arch-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: #d1fae5; line-height: 1; margin-bottom: 10px; }
+  .arch-icon { font-size: 22px; margin-bottom: 8px; }
+  .arch-name { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; color: var(--green); margin-bottom: 6px; }
+  .arch-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+  .arch-arrow { position: absolute; right: -10px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--green); z-index: 2; background: white; padding: 2px; }
+
+  /* CODE BLOCK */
+  .code-block { background: var(--code-bg); color: var(--code-text); padding: 24px; border-radius: 0; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.8; overflow-x: auto; margin-top: 20px; }
+  .code-block .comment { color: #94a3b8; }
+  .code-block .keyword { color: #93c5fd; }
+  .code-block .string { color: #86efac; }
+  .code-block .func { color: #fde68a; }
+
+  /* TOOLS */
+  .tools-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .tool { background: var(--green); color: white; padding: 7px 16px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
+
+  /* BEFORE/AFTER */
+  .ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 28px; }
+  .ba-card { padding: 32px; }
+  .ba-card.before { background: #fef2f2; border: 1px solid #fecaca; }
+  .ba-card.after  { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .ba-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-bottom: 16px; }
+  .ba-card.before .ba-label { color: #ef4444; }
+  .ba-card.after  .ba-label { color: #16a34a; }
+  .ba-item { font-size: 14px; color: #374151; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+  .ba-card.before .ba-item::before { content: '✗'; color: #ef4444; font-weight: 700; flex-shrink: 0; }
+  .ba-card.after  .ba-item::before { content: '✓'; color: #16a34a; font-weight: 700; flex-shrink: 0; }
+
+  @media (max-width: 768px) {
+    .back-bar, .hero, .body { padding-left: 24px; padding-right: 24px; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .arch-diagram { grid-template-columns: 1fr 1fr; }
+    .ba-grid { grid-template-columns: 1fr; }
+    .arch-step { border-right: 1px solid var(--border); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- BACK BAR -->
+<div class="back-bar">
+  <a class="back-link" href="index.html">&#8592; Back to Portfolio</a>
+  <a class="github-link" href="https://github.com/mayowa0/data-analytics-portfolio" target="_blank">&#128196; View Code on GitHub &#8599;</a>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Automation · Data Engineering · Fintech</div>
+    <h1 class="hero-title">Automated Loan<br><em>Report Pipeline</em></h1>
+    <p class="hero-sub">
+      A Python-based reporting system that queries a live PostgreSQL database,
+      calculates business KPIs, and delivers formatted HTML email reports with
+      Excel attachments — automatically, on schedule, every week and every month.
+    </p>
+    <div class="tag-row">
+      <span class="tag active">Python</span>
+      <span class="tag active">PostgreSQL</span>
+      <span class="tag active">SQL</span>
+      <span class="tag active">pandas</span>
+      <span class="tag active">openpyxl</span>
+      <span class="tag">ZeptoMail API</span>
+      <span class="tag">dotenv</span>
+      <span class="tag">Automation</span>
+      <span class="tag">SeedFi · 2025–2026</span>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val">4</div><div class="kpi-lbl">Report Variants Built</div></div>
+      <div class="kpi"><div class="kpi-val">2</div><div class="kpi-lbl">User Segments</div></div>
+      <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Manual Steps Remaining</div></div>
+      <div class="kpi"><div class="kpi-val">5+</div><div class="kpi-lbl">Stakeholders Auto-Notified</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+  <!-- OVERVIEW -->
+  <div class="block">
+    <div class="block-label">Overview</div>
+    <div class="block-title">The Problem Being Solved</div>
+    <p class="block-text">At SeedFi, loan performance data needed to reach the leadership team every week and every month — covering both merchant users (businesses taking loans) and individual users. Previously this involved manually querying the database, compiling numbers, and drafting emails.</p>
+    <p class="block-text">I automated this entirely. Four Python scripts now run on schedule, each pulling fresh data from the PostgreSQL database, computing all the KPIs, building a styled HTML email body, generating an Excel attachment, and dispatching everything via the ZeptoMail API — with zero human intervention required.</p>
+  </div>
+
+  <!-- BEFORE / AFTER -->
+  <div class="block">
+    <div class="block-label">Impact</div>
+    <div class="block-title">Before vs. After</div>
+    <div class="ba-grid">
+      <div class="ba-card before">
+        <div class="ba-label">&#10005; Before Automation</div>
+        <div class="ba-item">Manual database queries every week and every month</div>
+        <div class="ba-item">Numbers compiled manually in spreadsheets</div>
+        <div class="ba-item">Email drafted and sent by hand</div>
+        <div class="ba-item">Risk of human error in calculations</div>
+        <div class="ba-item">Time-consuming — hours per report cycle</div>
+        <div class="ba-item">No consistent week-on-week comparison format</div>
+      </div>
+      <div class="ba-card after">
+        <div class="ba-label">&#10003; After Automation</div>
+        <div class="ba-item">Scripts run automatically on Friday (weekly) and 1st of month</div>
+        <div class="ba-item">Database queried, KPIs calculated, email sent in &lt;60 seconds</div>
+        <div class="ba-item">Consistent HTML format, same structure every time</div>
+        <div class="ba-item">Excel file auto-generated and attached</div>
+        <div class="ba-item">Week-on-week / month-on-month comparison built in</div>
+        <div class="ba-item">Fully auditable — timestamp in every email footer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="block">
+    <div class="block-label">Architecture</div>
+    <div class="block-title">How Each Script Works</div>
+    <div class="arch-diagram">
+      <div class="arch-step">
+        <div class="arch-num">01</div>
+        <div class="arch-icon">🗓️</div>
+        <div class="arch-name">Scheduler</div>
+        <div class="arch-desc">Cron job triggers the script on schedule. Weekly: Fridays 12 PM. Monthly: 1st of month.</div>
+        <div class="arch-arrow">›</div>
+      </div>
+      <div class="arch-step">
+        <div class="arch-num">02</div>
+        <div class="arch-icon">🗄️</div>
+        <div class="arch-name">DB Query</div>
+        <div class="arch-desc">psycopg2 connects to PostgreSQL. SQL query pulls current & previous period data into a DataFrame.</div>
+        <div class="arch-arrow">›</div>
+      </div>
+      <div class="arch-step">
+        <div class="arch-num">03</div>
+        <div class="arch-icon">📊</div>
+        <div class="arch-name">KPI Calc</div>
+        <div class="arch-desc">pandas aggregates totals, calculates % changes, segments by tier, source (app vs admin), user type.</div>
+        <div class="arch-arrow">›</div>
+      </div>
+      <div class="arch-step">
+        <div class="arch-num">04</div>
+        <div class="arch-icon">📧</div>
+        <div class="arch-name">Email Build</div>
+        <div class="arch-desc">HTML email body generated dynamically. openpyxl builds the styled Excel attachment.</div>
+        <div class="arch-arrow">›</div>
+      </div>
+      <div class="arch-step">
+        <div class="arch-num">05</div>
+        <div class="arch-icon">📬</div>
+        <div class="arch-name">Dispatch</div>
+        <div class="arch-desc">ZeptoMail API sends the email with attachment to all recipients and CC list. Temp file deleted.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT PREVIEWS -->
+  <div class="block">
+    <div class="block-label">Report Previews</div>
+    <div class="block-title">What the Reports Look Like</div>
+    <p class="block-text" style="margin-bottom: 28px;">All figures below are dummy data — the layout, structure, and logic are exact replicas of the real reports.</p>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="showTab('merchant-weekly')">Merchant Weekly</div>
+      <div class="tab" onclick="showTab('merchant-monthly')">Merchant Monthly</div>
+      <div class="tab" onclick="showTab('user-monthly')">User Monthly</div>
+      <div class="tab" onclick="showTab('user-weekly')">User Weekly</div>
+    </div>
+
+    <!-- MERCHANT WEEKLY -->
+    <div class="tab-panel active" id="merchant-weekly">
+      <div class="email-mock">
+        <div class="email-header-bar">
+          <div class="email-subject">Weekly Merchant Loan Report - 2026-03-13 to 2026-03-20</div>
+          <div class="email-meta">
+            <div><strong>From:</strong> <span>FinApp Reports &lt;reports@finapp.com&gt;</span></div>
+            <div><strong>To:</strong> <span>Operations Lead</span></div>
+            <div><strong>Cc:</strong> <span>Analytics Team · Product Manager · Data Analyst</span></div>
+          </div>
+          <div class="email-attachment">
+            <div class="attach-icon">XLS</div>
+            <span>Merchant_Loan_Report_2026-03-13_to_2026-03-20.xlsx &nbsp;·&nbsp; 6 KB</span>
+          </div>
+        </div>
+        <div class="email-body">
+          <div class="em-wrap">
+            <div class="em-card">
+              <div class="em-hdr">
+                <h2>Weekly Merchant Loan Report</h2>
+                <p>Period: 2026-03-13 (Fri) to 2026-03-19 (Thu)</p>
+              </div>
+              <div class="em-content">
+                <p class="em-section-title">Summary</p>
+                <div class="em-summary-box">
+                  <p class="em-stat"><strong>Total Merchants Onboarded:</strong> <span class="val">2</span></p>
+                  <p class="em-bullet">• 1. Apex Ventures Limited</p>
+                  <p class="em-bullet">• 2. Bridgepoint Retail Co.</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Merchants With Approval:</strong> <span class="val">3</span></p>
+                  <p class="em-bullet">• 1. Apex Ventures Limited</p>
+                  <p class="em-bullet">• 2. Bridgepoint Retail Co.</p>
+                  <p class="em-bullet">• 3. Sunrise Distributors Ltd</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Merchants With Loans:</strong> <span class="val">3</span></p>
+                  <p class="em-bullet">• 1. Apex Ventures Limited</p>
+                  <p class="em-bullet">• 2. Bridgepoint Retail Co.</p>
+                  <p class="em-bullet">• 3. Sunrise Distributors Ltd</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Loans Disbursed:</strong> <span class="val">4</span></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Loan Volume:</strong> <span class="val">₦3,450,000.00</span></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Created by Admin:</strong> <span class="val">1 loan</span></p>
+                  <p class="em-bullet">• Volume: <strong>₦500,000.00</strong></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Created on Merchant App:</strong> <span class="val">3 loans</span></p>
+                  <p class="em-bullet">• Volume: <strong>₦2,950,000.00</strong></p>
+                </div>
+
+                <p class="em-section-title">Comparison with Previous Week</p>
+                <div class="em-comp-box">
+                  <p class="em-comp-item"><strong>Total Loan Count</strong><br>
+                    This Week: <strong>4</strong> &nbsp;|&nbsp; Last Week: 3<br>
+                    Growth: <span class="em-growth">+1 (+33.3%)</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Total Loan Volume</strong><br>
+                    This Week: <strong>₦3,450,000.00</strong> &nbsp;|&nbsp; Last Week: ₦2,800,000.00<br>
+                    Growth: <span class="em-growth">₦+650,000.00 (+23.2%)</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Merchants With Loans</strong><br>
+                    This Week: <strong>3</strong> &nbsp;|&nbsp; Last Week: 2</p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Admin vs App — Loan Count</strong><br>
+                    This Week — Admin: <strong>1</strong> &nbsp;|&nbsp; App: <strong>3</strong><br>
+                    Last Week — Admin: 1 &nbsp;|&nbsp; App: 2</p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Admin Loan Volume</strong><br>
+                    This Week: <strong>₦500,000.00</strong> &nbsp;|&nbsp; Last Week: ₦500,000.00<br>
+                    Growth: <span class="em-growth">₦+0.00 (+0.0%)</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Merchant App Loan Volume</strong><br>
+                    This Week: <strong>₦2,950,000.00</strong> &nbsp;|&nbsp; Last Week: ₦2,300,000.00<br>
+                    Growth: <span class="em-growth">₦+650,000.00 (+28.3%)</span></p>
+                </div>
+                <p style="font-size:13px;margin-top:16px;">Please find the full data attached as an Excel file.</p>
+                <p class="em-footer">Automated report generated on 2026-03-20 12:00:07</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MERCHANT MONTHLY -->
+    <div class="tab-panel" id="merchant-monthly">
+      <div class="email-mock">
+        <div class="email-header-bar">
+          <div class="email-subject">Monthly Merchant Loan Report - February 2026</div>
+          <div class="email-meta">
+            <div><strong>From:</strong> <span>FinApp Reports &lt;reports@finapp.com&gt;</span></div>
+            <div><strong>To:</strong> <span>Operations Lead</span></div>
+            <div><strong>Cc:</strong> <span>Analytics Team · Product Manager · Data Analyst</span></div>
+          </div>
+          <div class="email-attachment">
+            <div class="attach-icon">XLS</div>
+            <span>Merchant_Loan_Monthly_Report_February_2026.xlsx &nbsp;·&nbsp; 9 KB</span>
+          </div>
+        </div>
+        <div class="email-body">
+          <div class="em-wrap">
+            <div class="em-card">
+              <div class="em-hdr">
+                <h2>Monthly Merchant Loan Report</h2>
+                <p>Period: February 2026 (01 Feb - 28 Feb 2026)</p>
+              </div>
+              <div class="em-content">
+                <p class="em-section-title">Summary</p>
+                <div class="em-summary-box">
+                  <p class="em-stat"><strong>Total Merchants Onboarded:</strong> <span class="val">5</span></p>
+                  <p class="em-bullet">• 1. Apex Ventures Limited</p>
+                  <p class="em-bullet">• 2. Bridgepoint Retail Co.</p>
+                  <p class="em-bullet">• 3. Sunrise Distributors Ltd</p>
+                  <p class="em-bullet">• 4. Nova Supply Chain</p>
+                  <p class="em-bullet">• 5. Crest Agro Traders</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Merchants With Approval:</strong> <span class="val">7</span></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Merchants With Loans:</strong> <span class="val">7</span></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Loans Disbursed:</strong> <span class="val">14</span></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Loan Volume:</strong> <span class="val">₦18,750,000.00</span></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Created by Admin:</strong> <span class="val">4 loans</span></p>
+                  <p class="em-bullet">• Volume: <strong>₦5,200,000.00</strong></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Created on Merchant App:</strong> <span class="val">10 loans</span></p>
+                  <p class="em-bullet">• Volume: <strong>₦13,550,000.00</strong></p>
+                </div>
+                <p class="em-section-title">Comparison with Previous Month (January 2026)</p>
+                <div class="em-comp-box">
+                  <p class="em-comp-item"><strong>Total Loan Count</strong><br>
+                    This Month: <strong>14</strong> &nbsp;|&nbsp; Last Month: 11<br>
+                    Growth: <span class="em-growth">+3 (+27.3%)</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Total Loan Volume</strong><br>
+                    This Month: <strong>₦18,750,000.00</strong> &nbsp;|&nbsp; Last Month: ₦14,200,000.00<br>
+                    Growth: <span class="em-growth">₦+4,550,000.00 (+32.0%)</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Merchants With Loans</strong><br>
+                    This Month: <strong>7</strong> &nbsp;|&nbsp; Last Month: 5</p>
+                </div>
+                <p style="font-size:13px;margin-top:16px;">Please find the full data attached as an Excel file.</p>
+                <p class="em-footer">Automated report generated on 2026-03-01 12:00:04</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USER MONTHLY -->
+    <div class="tab-panel" id="user-monthly">
+      <div class="email-mock">
+        <div class="email-header-bar">
+          <div class="email-subject">Monthly Individual User Report - February 2026</div>
+          <div class="email-meta">
+            <div><strong>From:</strong> <span>FinApp Reports &lt;reports@finapp.com&gt;</span></div>
+            <div><strong>To:</strong> <span>Operations Lead</span></div>
+            <div><strong>Cc:</strong> <span>Analytics Team · Product Manager · Data Analyst</span></div>
+          </div>
+          <div class="email-attachment">
+            <div class="attach-icon">XLS</div>
+            <span>User_Monthly_Report_February_2026.xlsx &nbsp;·&nbsp; 43 KB</span>
+          </div>
+        </div>
+        <div class="email-body">
+          <div class="em-wrap">
+            <div class="em-card">
+              <div class="em-hdr">
+                <h2>Monthly SeedFi User Report</h2>
+                <p>Period: February 2026 (01 Feb - 28 Feb 2026)</p>
+              </div>
+              <div class="em-content">
+                <p class="em-section-title">Summary</p>
+                <div class="em-summary-box">
+                  <p class="em-stat"><strong>New Users Created:</strong> <span class="val">512</span></p>
+                  <p class="em-bullet">• Tier 0: 374</p>
+                  <p class="em-bullet">• Tier 1: 131</p>
+                  <p class="em-bullet">• Tier 2: 7</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Amount Disbursed:</strong> <span class="val">₦98,450,000.00</span></p>
+                  <p class="em-bullet">• From App: <strong>₦71,200,000.00</strong></p>
+                  <p class="em-bullet">• From Admin: <strong>₦27,250,000.00</strong></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Users Disbursed To:</strong> <span class="val">28</span></p>
+                  <p class="em-bullet">• New Users: 8</p>
+                  <p class="em-bullet">• Existing Users: 20</p>
+                  <p class="em-bullet">• Via App: 11</p>
+                  <p class="em-bullet">• Via Admin: 17</p>
+                  <p class="em-bullet">• Tier 0: 3 (New: 0 | Existing: 3)</p>
+                  <p class="em-bullet">• Tier 1: 19 (New: 8 | Existing: 11)</p>
+                  <p class="em-bullet">• Tier 2: 6 (New: 0 | Existing: 6)</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>New User Conversion Rate:</strong> <span class="val">1.6%</span></p>
+                  <p class="em-bullet">• 8 of 512 new users received a loan this month</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Loan Applications:</strong> <span class="val">348</span></p>
+                  <p class="em-bullet">• Distinct Applicants: <strong>159</strong></p>
+                  <p class="em-bullet">• Distinct Declined: <strong>121</strong></p>
+                  <p class="em-bullet">• Decline Rate: <strong>76.1%</strong></p>
+                </div>
+                <p class="em-section-title">Comparison with Previous Month (January 2026)</p>
+                <div class="em-comp-box">
+                  <p class="em-comp-item"><strong>New Users Created</strong><br>
+                    This Month: <strong>512</strong> &nbsp;|&nbsp; Last Month: 548<br>
+                    Decline: <span class="em-decline">-36 (-6.6%)</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Total Amount Disbursed</strong><br>
+                    This Month: <strong>₦98,450,000.00</strong> &nbsp;|&nbsp; Last Month: ₦83,200,000.00<br>
+                    Growth: <span class="em-growth">₦+15,250,000.00 (+18.3%)</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>New User Conversion Rate</strong><br>
+                    This Month: <strong>1.6%</strong> &nbsp;|&nbsp; Last Month: 1.1%<br>
+                    Growth: <span class="em-growth">+0.5%</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Decline Rate</strong><br>
+                    This Month: <strong>76.1%</strong> &nbsp;|&nbsp; Last Month: 80.4%<br>
+                    Decline: <span class="em-decline">-4.3%</span></p>
+                </div>
+                <p style="font-size:13px;margin-top:16px;">Please find the full data attached as an Excel file.</p>
+                <p class="em-footer">Automated report generated on 2026-03-01 12:00:09</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USER WEEKLY -->
+    <div class="tab-panel" id="user-weekly">
+      <div class="email-mock">
+        <div class="email-header-bar">
+          <div class="email-subject">Weekly SeedFi Individual User Report - 2026-03-13 to 2026-03-20</div>
+          <div class="email-meta">
+            <div><strong>From:</strong> <span>FinApp Reports &lt;reports@finapp.com&gt;</span></div>
+            <div><strong>To:</strong> <span>Operations Lead</span></div>
+            <div><strong>Cc:</strong> <span>Analytics Team · Product Manager · Data Analyst</span></div>
+          </div>
+          <div class="email-attachment">
+            <div class="attach-icon">XLS</div>
+            <span>User_Weekly_Report_2026-03-13_to_2026-03-20.xlsx &nbsp;·&nbsp; 18 KB</span>
+          </div>
+        </div>
+        <div class="email-body">
+          <div class="em-wrap">
+            <div class="em-card">
+              <div class="em-hdr">
+                <h2>Weekly SeedFi User Report</h2>
+                <p>Period: 2026-03-13 (Fri) to 2026-03-19 (Thu)</p>
+              </div>
+              <div class="em-content">
+                <p class="em-section-title">Summary</p>
+                <div class="em-summary-box">
+                  <p class="em-stat"><strong>New Users Created:</strong> <span class="val">134</span></p>
+                  <p class="em-bullet">• Tier 0: 98</p>
+                  <p class="em-bullet">• Tier 1: 34</p>
+                  <p class="em-bullet">• Tier 2: 2</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Amount Disbursed:</strong> <span class="val">₦22,100,000.00</span></p>
+                  <p class="em-bullet">• From App: <strong>₦14,600,000.00</strong></p>
+                  <p class="em-bullet">• From Admin: <strong>₦7,500,000.00</strong></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Total Users Disbursed To:</strong> <span class="val">9</span></p>
+                  <p class="em-bullet">• New: 2 &nbsp;|&nbsp; Existing: 7</p>
+                  <p class="em-bullet">• Via App: 4 &nbsp;|&nbsp; Via Admin: 5</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>New User Conversion Rate:</strong> <span class="val">1.5%</span></p>
+                  <p class="em-bullet">• 2 of 134 new users received a loan this week</p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Loan Applications:</strong> <span class="val">87</span></p>
+                  <p class="em-bullet">• Distinct Applicants: <strong>41</strong></p>
+                  <p class="em-bullet">• Distinct Declined: <strong>31</strong></p>
+                  <p class="em-bullet">• Decline Rate: <strong>75.6%</strong></p>
+                  <hr class="em-divider">
+                  <p class="em-stat"><strong>Deleted Users:</strong> <span class="val">3</span></p>
+                  <p class="em-bullet">• Users who signed up this week and subsequently deleted their account</p>
+                </div>
+                <p class="em-section-title">Comparison with Previous Week</p>
+                <div class="em-comp-box">
+                  <p class="em-comp-item"><strong>New Users Created</strong><br>
+                    This Week: <strong>134</strong> &nbsp;|&nbsp; Last Week: 118<br>
+                    Growth: <span class="em-growth">+16 (+13.6%)</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Total Amount Disbursed</strong><br>
+                    This Week: <strong>₦22,100,000.00</strong> &nbsp;|&nbsp; Last Week: ₦19,400,000.00<br>
+                    Growth: <span class="em-growth">₦+2,700,000.00 (+13.9%)</span></p>
+                  <hr class="em-ydivider">
+                  <p class="em-comp-item"><strong>Decline Rate</strong><br>
+                    This Week: <strong>75.6%</strong> &nbsp;|&nbsp; Last Week: 78.2%<br>
+                    Decline: <span class="em-decline">-2.6%</span></p>
+                </div>
+                <p style="font-size:13px;margin-top:16px;">Please find the full data attached as an Excel file.</p>
+                <p class="em-footer">Automated report generated on 2026-03-20 12:00:11</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- end tab block -->
+
+  <!-- CODE SNIPPET -->
+  <div class="block">
+    <div class="block-label">Code Highlight</div>
+    <div class="block-title">Core SQL Query Pattern</div>
+    <p class="block-text">Each script runs two queries — current period and previous period — then calculates the delta. Credentials are always loaded from environment variables, never hardcoded.</p>
+    <div class="code-block">
+<span class="comment"># All credentials loaded from .env — never hardcoded</span>
+<span class="keyword">import</span> os
+<span class="keyword">from</span> dotenv <span class="keyword">import</span> load_dotenv
+load_dotenv()
+
+DB_HOST = os.getenv(<span class="string">'DB_HOST'</span>)   <span class="comment"># e.g. "db.yourcompany.com"</span>
+DB_NAME = os.getenv(<span class="string">'DB_NAME'</span>)
+DB_USER = os.getenv(<span class="string">'DB_USER'</span>)
+DB_PASS = os.getenv(<span class="string">'DB_PASS'</span>)
+
+<span class="comment"># Rolling 7-day window calculated automatically</span>
+today      = datetime.now().date()
+curr_start = today - timedelta(days=<span class="string">7</span>)
+prev_start = curr_start - timedelta(days=<span class="string">7</span>)
+prev_end   = curr_start
+
+<span class="comment"># Fetch both periods, build summaries, calculate week-on-week change</span>
+curr_df   = <span class="func">fetch_data</span>(curr_start, today)
+prev_df   = <span class="func">fetch_data</span>(prev_start, prev_end)
+cs        = <span class="func">build_summary</span>(curr_df)
+ps        = <span class="func">build_summary</span>(prev_df)
+
+<span class="comment"># pct_change helper handles division-by-zero gracefully</span>
+<span class="keyword">def</span> <span class="func">pct_change</span>(curr, prev):
+    <span class="keyword">if</span> prev == <span class="string">0</span>: <span class="keyword">return</span> <span class="string">100.0</span> <span class="keyword">if</span> curr > <span class="string">0</span> <span class="keyword">else</span> <span class="string">0.0</span>
+    <span class="keyword">return</span> ((curr - prev) / prev) * <span class="string">100</span>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="block">
+    <div class="block-label">Stack</div>
+    <div class="block-title">Tools & Libraries</div>
+    <div class="tools-row">
+      <span class="tool">Python 3.11</span>
+      <span class="tool">psycopg2</span>
+      <span class="tool">pandas</span>
+      <span class="tool">openpyxl</span>
+      <span class="tool">python-dotenv</span>
+      <span class="tool">requests</span>
+      <span class="tool">ZeptoMail API</span>
+      <span class="tool">PostgreSQL</span>
+      <span class="tool">Cron Scheduler</span>
+    </div>
+  </div>
+
+</div><!-- end body -->
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

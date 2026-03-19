@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q1 2026 Performance Analysis · Mayowa Alamutu</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #16161d;
+    --surface2: #1c1c26;
+    --ink: #f0eef8;
+    --muted: #7c7a8e;
+    --border: #252532;
+    --purple: #7c3aed;
+    --purple-light: #a78bfa;
+    --purple-pale: #ede9fe;
+    --teal: #0d9488;
+    --teal-light: #2dd4bf;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --green: #22c55e;
+    --green-dim: #16a34a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Outfit', sans-serif; font-size: 14px; line-height: 1.7; }
+
+  /* BACK BAR */
+  .back-bar { padding: 18px 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .back-link { text-decoration: none; color: var(--muted); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; transition: color 0.2s; }
+  .back-link:hover { color: var(--purple-light); }
+  .github-link { text-decoration: none; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; color: var(--purple-light); border: 1px solid var(--purple); padding: 8px 18px; transition: all 0.2s; }
+  .github-link:hover { background: var(--purple); color: white; }
+
+  /* HERO */
+  .hero { padding: 72px 56px 0; max-width: 1200px; margin: 0 auto; }
+  .hero-inner { display: grid; grid-template-columns: 1.1fr 1fr; gap: 64px; align-items: end; padding-bottom: 0; }
+  .hero-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .hero-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--purple); }
+  .hero-title { font-family: 'Crimson Pro', serif; font-size: clamp(40px, 5vw, 72px); font-weight: 600; line-height: 1.0; letter-spacing: -1px; margin-bottom: 20px; }
+  .hero-title em { font-style: italic; color: var(--purple-light); }
+  .hero-sub { font-size: 16px; font-weight: 300; color: var(--muted); max-width: 480px; line-height: 1.7; margin-bottom: 28px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 40px; }
+  .tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border: 1px solid var(--border); color: var(--muted); }
+  .tag.active { border-color: var(--purple); color: var(--purple-light); }
+
+  /* HERO RIGHT — LIVE MINI DASHBOARD */
+  .mini-dash { background: var(--surface); border: 1px solid var(--border); padding: 28px; }
+  .mini-dash-title { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+  .mini-dash-badge { font-size: 9px; color: var(--purple-light); border: 1px solid var(--purple); padding: 3px 8px; }
+  .kpi-mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .kpi-mini { background: var(--surface2); padding: 14px; }
+  .kpi-mini-val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 500; color: var(--purple-light); line-height: 1; }
+  .kpi-mini-lbl { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+  .kpi-mini-change { font-size: 11px; margin-top: 4px; }
+  .up { color: var(--green); }
+  .dn { color: var(--red); }
+  .mini-chart-wrap { height: 110px; position: relative; }
+
+  /* BODY */
+  .body { max-width: 1200px; margin: 0 auto; padding: 64px 56px 96px; }
+  .block { margin-bottom: 72px; }
+  .block-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+  .block-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .block-title { font-family: 'Crimson Pro', serif; font-size: 32px; font-weight: 600; line-height: 1.2; margin-bottom: 16px; }
+  .block-text { font-size: 15px; font-weight: 300; color: var(--muted); line-height: 1.8; max-width: 720px; }
+
+  /* SLIDE CARDS */
+  .slides-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+  .slide-card { background: var(--surface); border: 1px solid var(--border); overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+  .slide-card:hover { border-color: var(--purple); transform: translateY(-3px); }
+  .slide-thumb { height: 160px; display: flex; flex-direction: column; justify-content: center; padding: 20px; position: relative; overflow: hidden; }
+  .slide-thumb::before { content: ''; position: absolute; inset: 0; opacity: 0.06; }
+  .slide-num { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 8px; }
+  .slide-title { font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--ink); }
+  .slide-insight { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+  .slide-footer { padding: 12px 20px; border-top: 1px solid var(--border); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+
+  /* CHART GRID */
+  .chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+  .chart-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 28px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); padding: 24px; }
+  .chart-card.wide { grid-column: span 2; }
+  .chart-card h4 { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+  .chart-wrap { position: relative; height: 200px; }
+  .chart-wrap.tall { height: 240px; }
+
+  /* PERSONA CARDS */
+  .persona-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 28px; }
+  .persona-card { background: var(--surface); border: 1px solid var(--border); padding: 20px; transition: border-color 0.2s; }
+  .persona-card:hover { border-color: var(--purple); }
+  .persona-dpd { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .dpd-0  { color: var(--green); }
+  .dpd-15 { color: var(--teal-light); }
+  .dpd-30 { color: var(--amber); }
+  .dpd-60 { color: #f97316; }
+  .dpd-90 { color: var(--red); }
+  .persona-name { font-family: 'Crimson Pro', serif; font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .persona-pct { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 500; margin-bottom: 8px; }
+  .persona-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+  /* FUNNEL */
+  .funnel-wrap { margin-top: 28px; max-width: 640px; }
+  .funnel-step { margin-bottom: 8px; }
+  .funnel-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .funnel-bar-bg { height: 36px; background: var(--surface2); position: relative; }
+  .funnel-bar-fill { height: 36px; display: flex; align-items: center; padding-left: 12px; font-size: 12px; font-weight: 600; font-family: 'JetBrains Mono', monospace; transition: width 1s ease; }
+  .funnel-drop { font-size: 10px; color: var(--red); margin-top: 2px; text-align: right; }
+
+  /* RECOMMENDATIONS */
+  .recs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+  .rec-card { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--purple); padding: 28px; }
+  .rec-category { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 10px; }
+  .rec-title { font-family: 'Crimson Pro', serif; font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+  .rec-text { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .rec-action { margin-top: 14px; font-size: 11px; color: var(--teal-light); border-top: 1px solid var(--border); padding-top: 12px; }
+
+  /* TOOLS */
+  .tools-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .tool { border: 1px solid var(--border); color: var(--purple-light); padding: 7px 16px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+
+  /* SLIDE DECK MOCKUP */
+  .deck-preview { background: var(--surface); border: 1px solid var(--border); overflow: hidden; margin-top: 28px; }
+  .deck-titlebar { background: var(--surface2); padding: 12px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .deck-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .deck-filename { font-size: 11px; color: var(--muted); margin-left: 8px; font-family: 'JetBrains Mono', monospace; }
+  .deck-slides { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 20px; overflow-x: auto; }
+  .deck-slide { background: var(--bg); border: 1px solid var(--border); aspect-ratio: 16/9; display: flex; flex-direction: column; padding: 10px; position: relative; transition: border-color 0.2s; cursor: default; }
+  .deck-slide:hover { border-color: var(--purple); }
+  .deck-slide-num { font-size: 8px; color: var(--muted); margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; }
+  .deck-slide-title { font-size: 7px; font-weight: 600; color: var(--purple-light); line-height: 1.3; }
+  .deck-slide-bar { height: 3px; border-radius: 0; margin-top: auto; }
+
+  @media (max-width: 900px) {
+    .back-bar, .hero, .body { padding-left: 24px; padding-right: 24px; }
+    .hero-inner { grid-template-columns: 1fr; }
+    .slides-grid { grid-template-columns: 1fr 1fr; }
+    .chart-grid-2, .chart-grid-3 { grid-template-columns: 1fr; }
+    .chart-card.wide { grid-column: span 1; }
+    .persona-grid { grid-template-columns: 1fr 1fr; }
+    .recs-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back-bar">
+  <a class="back-link" href="index.html">&#8592; Back to Portfolio</a>
+  <a class="github-link" href="https://github.com/mayowa0/data-analytics-portfolio" target="_blank">&#128196; View Code on GitHub &#8599;</a>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Business Intelligence · Strategy</div>
+      <h1 class="hero-title">Q1 2026<br><em>Performance</em><br>Analysis</h1>
+      <p class="hero-sub">A comprehensive quarterly business review for a Nigerian digital lending platform — covering disbursements, repayment health, borrower segmentation, conversion efficiency, and Q2 strategic recommendations.</p>
+      <div class="tag-row">
+        <span class="tag active">SQL</span>
+        <span class="tag active">Python</span>
+        <span class="tag active">Data Storytelling</span>
+        <span class="tag active">PowerPoint</span>
+        <span class="tag">Borrower Segmentation</span>
+        <span class="tag">Cohort Analysis</span>
+        <span class="tag">Fintech · Q1 2026</span>
+      </div>
+    </div>
+
+    <div class="mini-dash">
+      <div class="mini-dash-title">
+        Q1 2026 — At a Glance
+        <span class="mini-dash-badge">DUMMY DATA</span>
+      </div>
+      <div class="kpi-mini-grid">
+        <div class="kpi-mini">
+          <div class="kpi-mini-val">₦2.4B</div>
+          <div class="kpi-mini-lbl">Total Disbursed</div>
+          <div class="kpi-mini-change up">▲ +24% vs Q4</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-val">4,812</div>
+          <div class="kpi-mini-lbl">Active Loans</div>
+          <div class="kpi-mini-change up">▲ +8% vs Q4</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-val">67%</div>
+          <div class="kpi-mini-lbl">Approval Rate</div>
+          <div class="kpi-mini-change up">▲ +3pp vs Q4</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-val">14.2%</div>
+          <div class="kpi-mini-lbl">NPL Rate</div>
+          <div class="kpi-mini-change dn">▲ +2.1pp vs Q4</div>
+        </div>
+      </div>
+      <div class="mini-chart-wrap">
+        <canvas id="miniChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+  <!-- OVERVIEW -->
+  <div class="block">
+    <div class="block-label">Overview</div>
+    <div class="block-title">What This Analysis Covers</div>
+    <p class="block-text">This 29-slide deck was prepared as the Q1 2026 business performance review for a Nigerian B2C digital lending platform. The analysis spans five core areas: executive summary, disbursement analysis, repayment and collections, conversion and process efficiency, and strategic recommendations for Q2.</p>
+    <p class="block-text" style="margin-top:12px;">Data was pulled from the internal loan management system, credit bureau feeds, and product analytics platform, then transformed and visualized to tell a clear, decision-ready story for leadership. All figures shown here are dummy data — the structure and methodology are real.</p>
+  </div>
+
+  <!-- DECK PREVIEW -->
+  <div class="block">
+    <div class="block-label">Slide Deck</div>
+    <div class="block-title">29-Slide Executive Presentation</div>
+    <p class="block-text">Below are the key sections of the deck. Each slide group answers a specific business question.</p>
+
+    <div class="deck-preview">
+      <div class="deck-titlebar">
+        <div class="deck-dot" style="background:#ef4444"></div>
+        <div class="deck-dot" style="background:#f59e0b"></div>
+        <div class="deck-dot" style="background:#22c55e"></div>
+        <span class="deck-filename">Q1_2026_Performance_Analysis.pptx &nbsp;·&nbsp; 29 slides</span>
+      </div>
+      <div class="deck-slides">
+        <div class="deck-slide">
+          <div class="deck-slide-num">01</div>
+          <div class="deck-slide-title">Cover — Q1 2026 Performance</div>
+          <div class="deck-slide-bar" style="background: var(--purple)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">02</div>
+          <div class="deck-slide-title">Executive Summary KPIs</div>
+          <div class="deck-slide-bar" style="background: var(--purple)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">03</div>
+          <div class="deck-slide-title">NPL Rate vs Last Quarter</div>
+          <div class="deck-slide-bar" style="background: var(--red)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">04</div>
+          <div class="deck-slide-title">Month-on-Month Trend + Forecast</div>
+          <div class="deck-slide-bar" style="background: var(--teal)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">05</div>
+          <div class="deck-slide-title">Loan Band Breakdown</div>
+          <div class="deck-slide-bar" style="background: var(--teal)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">06</div>
+          <div class="deck-slide-title">Personal Loan Portfolio</div>
+          <div class="deck-slide-bar" style="background: var(--teal)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">07</div>
+          <div class="deck-slide-title">Approval Rate & Rejection Drivers</div>
+          <div class="deck-slide-bar" style="background: var(--amber)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">08</div>
+          <div class="deck-slide-title">Borrower Segment Concentration</div>
+          <div class="deck-slide-bar" style="background: var(--amber)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">09</div>
+          <div class="deck-slide-title">Volume vs Default by Channel</div>
+          <div class="deck-slide-bar" style="background: var(--amber)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">10</div>
+          <div class="deck-slide-title">Collection Efficiency Rate</div>
+          <div class="deck-slide-bar" style="background: var(--red)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">11–13</div>
+          <div class="deck-slide-title">Overdue Buckets · Who's Defaulting · Vintage Analysis</div>
+          <div class="deck-slide-bar" style="background: var(--red)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">14</div>
+          <div class="deck-slide-title">Active vs Dormant Borrowers</div>
+          <div class="deck-slide-bar" style="background: var(--red)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">15–18</div>
+          <div class="deck-slide-title">Funnel Drop-off · TAT · Top Prospects</div>
+          <div class="deck-slide-bar" style="background: var(--teal)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">19–22</div>
+          <div class="deck-slide-title">Comparative Analysis + Forecast</div>
+          <div class="deck-slide-bar" style="background: var(--purple)"></div>
+        </div>
+        <div class="deck-slide">
+          <div class="deck-slide-num">23–26</div>
+          <div class="deck-slide-title">Recommendations (4 areas)</div>
+          <div class="deck-slide-bar" style="background: var(--green)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY SLIDES -->
+  <div class="block">
+    <div class="block-label">Key Slides</div>
+    <div class="block-title">Section-by-Section Breakdown</div>
+    <div class="slides-grid">
+      <div class="slide-card">
+        <div class="slide-thumb" style="background: linear-gradient(135deg, #1e0a3c, #2d1166);">
+          <div class="slide-num">Executive Summary</div>
+          <div class="slide-title">Disbursed vs Repayment vs NPL</div>
+          <div class="slide-insight">Three headline KPIs that set the context for everything that follows — volume, health, risk.</div>
+        </div>
+        <div class="slide-footer">Slides 02–03 &nbsp;·&nbsp; KPI Overview</div>
+      </div>
+      <div class="slide-card">
+        <div class="slide-thumb" style="background: linear-gradient(135deg, #0a2c2c, #0d4a4a);">
+          <div class="slide-num">Disbursement Analysis</div>
+          <div class="slide-title">Month-on-Month Trend + Q2 Forecast</div>
+          <div class="slide-insight">Disbursements grew steadily through Q1. Q2 projected to reach ₦XXXm based on trend extrapolation.</div>
+        </div>
+        <div class="slide-footer">Slides 04–09 &nbsp;·&nbsp; 6 Slides</div>
+      </div>
+      <div class="slide-card">
+        <div class="slide-thumb" style="background: linear-gradient(135deg, #2c0a0a, #4a1010);">
+          <div class="slide-num">Repayment & Collections</div>
+          <div class="slide-title">Overdue Buckets + Vintage Analysis</div>
+          <div class="slide-insight">90-day overdues grew in March. January 2026 cohort tracking below older cohorts — monitor in April.</div>
+        </div>
+        <div class="slide-footer">Slides 10–14 &nbsp;·&nbsp; 5 Slides</div>
+      </div>
+      <div class="slide-card">
+        <div class="slide-thumb" style="background: linear-gradient(135deg, #0a1a2c, #0d2e4a);">
+          <div class="slide-num">Conversion & Process Efficiency</div>
+          <div class="slide-title">Application Drop-off Funnel + TAT</div>
+          <div class="slide-insight">Bank statement upload is the top abandonment point. Median TAT is X hrs — but X% still take 24+ hrs.</div>
+        </div>
+        <div class="slide-footer">Slides 15–18 &nbsp;·&nbsp; 4 Slides</div>
+      </div>
+      <div class="slide-card">
+        <div class="slide-thumb" style="background: linear-gradient(135deg, #1a1a0a, #2e2e10);">
+          <div class="slide-num">Comparative Analysis</div>
+          <div class="slide-title">Q1 vs Q4 vs Q3 + Benchmarks</div>
+          <div class="slide-insight">Platform leads peers on TAT and approval rate — but NPL sits above industry average. Closing gap = ₦Xm protected.</div>
+        </div>
+        <div class="slide-footer">Slides 19–22 &nbsp;·&nbsp; 4 Slides</div>
+      </div>
+      <div class="slide-card">
+        <div class="slide-thumb" style="background: linear-gradient(135deg, #0a2c12, #0d4a1a);">
+          <div class="slide-num">Recommendations</div>
+          <div class="slide-title">4 Strategic Actions for Q2</div>
+          <div class="slide-insight">Scale salaried segment · Tighten Score Band D criteria · Introduce 45-day tenure · Build retention engine.</div>
+        </div>
+        <div class="slide-footer">Slides 23–26 &nbsp;·&nbsp; 4 Slides</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="block">
+    <div class="block-label">Key Visualisations</div>
+    <div class="block-title">Interactive Chart Replicas</div>
+    <p class="block-text" style="margin-bottom: 28px;">Charts from the deck — rebuilt interactively with dummy figures that mirror the structure of the real analysis.</p>
+
+    <div class="chart-grid-2">
+      <div class="chart-card wide">
+        <h4>Month-on-Month Disbursement + Q2 Forecast (₦ millions)</h4>
+        <div class="chart-wrap tall">
+          <canvas id="disbChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h4>Approval Rate — Q1 2026</h4>
+        <div class="chart-wrap">
+          <canvas id="approvalChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid-3" style="margin-top: 16px;">
+      <div class="chart-card">
+        <h4>Overdue Bucket Distribution</h4>
+        <div class="chart-wrap">
+          <canvas id="overdueChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h4>Loan Band Breakdown (% of Volume)</h4>
+        <div class="chart-wrap">
+          <canvas id="bandChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h4>Quarterly Comparison — Applications vs Disbursements</h4>
+        <div class="chart-wrap">
+          <canvas id="qtrChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BORROWER PERSONAS -->
+  <div class="block">
+    <div class="block-label">Borrower Segmentation</div>
+    <div class="block-title">5 Borrower Personas — DPD Framework</div>
+    <p class="block-text">One of the analytical frameworks developed for this deck — classifying borrowers by Days Past Due behaviour into actionable risk segments.</p>
+    <div class="persona-grid">
+      <div class="persona-card">
+        <div class="persona-dpd dpd-0">0 DPD &nbsp;·&nbsp; 30%</div>
+        <div class="persona-name">Casual Collins</div>
+        <div class="persona-pct" style="color: var(--green)">30%</div>
+        <div class="persona-desc">Moderate borrower. Irregular pattern, sometimes needs a reminder but always pays on time.</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-dpd dpd-15">0–15 DPD &nbsp;·&nbsp; 15%</div>
+        <div class="persona-name">Grace-Period Grace</div>
+        <div class="persona-pct" style="color: var(--teal-light)">15%</div>
+        <div class="persona-desc">Mildly delinquent. Repays but always slightly late — consistently in the 1–30 day overdue window.</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-dpd dpd-30">1–30 DPD &nbsp;·&nbsp; 9%</div>
+        <div class="persona-name">Risky Rachel</div>
+        <div class="persona-pct" style="color: var(--amber)">9%</div>
+        <div class="persona-desc">High risk. Self-employed, irregular income. Frequent delays, high default probability.</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-dpd dpd-90">90+ DPD &nbsp;·&nbsp; 34%</div>
+        <div class="persona-name">Ghosted Gabriel</div>
+        <div class="persona-pct" style="color: var(--red)">34%</div>
+        <div class="persona-desc">Non-responsive. 90+ days overdue. High loss probability. Immediate collections priority.</div>
+      </div>
+    </div>
+    <p style="margin-top: 16px; font-size: 13px; color: var(--muted);">⚠ Ghosted Gabriel (34%) + Risky Rachel (9%) together account for 43% of borrowers — nearly half the portfolio carries elevated to critical risk.</p>
+  </div>
+
+  <!-- APPLICATION FUNNEL -->
+  <div class="block">
+    <div class="block-label">Conversion Efficiency</div>
+    <div class="block-title">Application Drop-off Funnel</div>
+    <p class="block-text">Where applicants drop out of the journey — and what re-engaging them could unlock in Q2.</p>
+    <div class="funnel-wrap">
+      <div class="funnel-step">
+        <div class="funnel-label"><span>Applications Started</span><span>8,400</span></div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill" style="width:100%; background: #7c3aed; color:white">8,400</div>
+        </div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-label"><span>Profile Completed</span><span>6,720</span></div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill" style="width:80%; background: #6d28d9; color:white">6,720</div>
+        </div>
+        <div class="funnel-drop">↓ 1,680 dropped (−20%)</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-label"><span>BVN Verified</span><span>5,376</span></div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill" style="width:64%; background: #5b21b6; color:white">5,376</div>
+        </div>
+        <div class="funnel-drop">↓ 1,344 dropped (−20%) — BVN friction</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-label"><span>Selfie Check Passed</span><span>4,570</span></div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill" style="width:54%; background: #4c1d95; color:white">4,570</div>
+        </div>
+        <div class="funnel-drop">↓ 806 dropped (−15%) — selfie friction</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-label"><span>Bank Statement Uploaded</span><span>2,742</span></div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill" style="width:33%; background: #f59e0b; color:white">2,742</div>
+        </div>
+        <div class="funnel-drop" style="color: var(--amber)">↓ 1,828 dropped (−40%) ← biggest drop-off point</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-label"><span>Disbursed</span><span>1,848</span></div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill" style="width:22%; background: #22c55e; color:white">1,848</div>
+        </div>
+        <div class="funnel-drop" style="color: var(--green)">Overall conversion: 22% &nbsp;·&nbsp; 894 declined at credit stage</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div class="block">
+    <div class="block-label">Recommendations</div>
+    <div class="block-title">4 Strategic Actions for Q2</div>
+    <div class="recs-grid">
+      <div class="rec-card">
+        <div class="rec-category">Earn More</div>
+        <div class="rec-title">Scale the Salaried Segment</div>
+        <div class="rec-text">Salaried borrowers deliver the best risk-adjusted volume — low default rates combined with higher ticket sizes. Set Q2 acquisition targets specifically for Score Band A–B salaried applicants.</div>
+        <div class="rec-action">→ Brief sales and credit teams on new segment targets by Q2 kickoff</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-category">Reduce Wastage</div>
+        <div class="rec-title">Tighten Score Band D Criteria</div>
+        <div class="rec-text">Score Band D self-employed borrowers represent a disproportionate share of defaults relative to their volume contribution. Restrict this combination on tenures under 60 days.</div>
+        <div class="rec-action">→ Update credit policy; review in underwriting team meeting</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-category">Product Decisions</div>
+        <div class="rec-title">Introduce 45-Day Tenure Option</div>
+        <div class="rec-title" style="font-size:14px; margin-top:4px; color: var(--muted); font-family: Outfit;">+ Pilot Partial Repayment for High-Ticket Borrowers</div>
+        <div class="rec-text">45-day tenures could reduce defaults by reducing end-of-term pressure. Allow borrowers to pay a portion mid-tenure on loans over ₦200k.</div>
+        <div class="rec-action">→ Product team to scope for Q2 2026 roadmap</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-category">Retention & Growth</div>
+        <div class="rec-title">Build an Automated Upgrade Engine</div>
+        <div class="rec-text">Only a small fraction of repeat borrowers upgrade to a higher loan band. A structured upgrade trigger after the 2nd repayment — plus a retention campaign targeting first-loan-only borrowers — could unlock significant Q2 incremental volume.</div>
+        <div class="rec-action">→ CRM team: design campaign targeting 1st-loan borrowers within 90 days of repayment</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="block">
+    <div class="block-label">Stack</div>
+    <div class="block-title">Tools Used</div>
+    <div class="tools-row">
+      <span class="tool">SQL (PostgreSQL)</span>
+      <span class="tool">Python · Pandas</span>
+      <span class="tool">Microsoft PowerPoint</span>
+      <span class="tool">Google Slides</span>
+      <span class="tool">Excel</span>
+      <span class="tool">Cohort Analysis</span>
+      <span class="tool">Funnel Analysis</span>
+      <span class="tool">Vintage Analysis</span>
+    </div>
+  </div>
+
+</div><!-- end body -->
+
+<script>
+Chart.defaults.color = '#7c7a8e';
+Chart.defaults.font.family = "'Outfit', sans-serif";
+Chart.defaults.font.size = 11;
+
+const border = '#252532';
+
+// Mini chart
+new Chart(document.getElementById('miniChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Jan','Feb','Mar'],
+    datasets: [{
+      data: [680, 820, 940],
+      backgroundColor: ['rgba(124,58,237,0.7)','rgba(124,58,237,0.8)','rgba(124,58,237,0.95)'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: '#252532' }, ticks: { callback: v => '₦'+v+'m', font:{size:9} } },
+      x: { grid: { display: false }, ticks: { font:{size:10} } }
+    }
+  }
+});
+
+// Disbursement + forecast
+new Chart(document.getElementById('disbChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Jan 26','Feb 26','Mar 26','Apr 26*','May 26*'],
+    datasets: [
+      {
+        label: 'Actual',
+        data: [680, 820, 940, null, null],
+        backgroundColor: 'rgba(124,58,237,0.8)',
+        borderWidth: 0
+      },
+      {
+        label: 'Forecast',
+        data: [null, null, null, 1040, 1160],
+        backgroundColor: 'rgba(124,58,237,0.3)',
+        borderColor: '#7c3aed',
+        borderWidth: 2,
+        borderDash: [5,5]
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14 } } },
+    scales: {
+      y: { grid: { color: border }, ticks: { callback: v => '₦'+v+'m' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Approval donut
+new Chart(document.getElementById('approvalChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Approved (67%)', 'Rejected — Low Score', 'Rejected — Gambling', 'Rejected — Other'],
+    datasets: [{
+      data: [67, 18, 8, 7],
+      backgroundColor: ['#22c55e','#ef4444','#f59e0b','#6b7280'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font:{size:10} } } },
+    cutout: '60%'
+  }
+});
+
+// Overdue buckets
+new Chart(document.getElementById('overdueChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Jan','Feb','Mar'],
+    datasets: [
+      { label: '30-day', data: [142, 158, 181], backgroundColor: '#f59e0b', borderWidth: 0 },
+      { label: '60-day', data: [68,  74,  92],  backgroundColor: '#f97316', borderWidth: 0 },
+      { label: '90-day', data: [41,  49,  72],  backgroundColor: '#ef4444', borderWidth: 0 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10 } } },
+    scales: {
+      x: { stacked: true, grid: { display: false } },
+      y: { stacked: true, grid: { color: border } }
+    }
+  }
+});
+
+// Loan band
+new Chart(document.getElementById('bandChart'), {
+  type: 'bar',
+  data: {
+    labels: ['<₦50k','₦50–100k','₦100–500k','₦500k+'],
+    datasets: [{ data: [12, 23, 48, 17], backgroundColor: ['rgba(124,58,237,0.4)','rgba(124,58,237,0.6)','rgba(124,58,237,0.9)','rgba(124,58,237,0.5)'], borderWidth: 0 }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: border }, ticks: { callback: v => v+'%' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// Quarterly comparison
+new Chart(document.getElementById('qtrChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Q3 2025','Q4 2025','Q1 2026'],
+    datasets: [
+      { label: 'Applications', data: [6200, 7100, 8400], backgroundColor: 'rgba(124,58,237,0.4)', borderWidth: 0 },
+      { label: 'Disbursements', data: [1240, 1520, 1848], backgroundColor: 'rgba(45,212,191,0.7)', borderWidth: 0 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10 } } },
+    scales: {
+      y: { grid: { color: border } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>
