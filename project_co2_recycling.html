@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CO₂ & Recycling Impact Dashboard · Mayowa Alamutu</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f0f4f0;
+    --dark: #0d1f12;
+    --panel: #162318;
+    --panel2: #1e3020;
+    --green: #4ade80;
+    --green-dim: #16a34a;
+    --teal: #2dd4bf;
+    --sand: #e8e0cc;
+    --text: #e8f5e8;
+    --muted: #7a9e7e;
+    --border: #243826;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --white: #f0f9f0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--dark); color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.7; }
+
+  /* BACK */
+  .back-bar { padding: 18px 56px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  .back-link { text-decoration: none; color: var(--muted); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; transition: color 0.2s; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+  .back-link:hover { color: var(--green); }
+
+  /* HERO */
+  .proj-hero { padding: 80px 56px 0; max-width: 1200px; margin: 0 auto; }
+  .hero-inner { display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: end; padding-bottom: 0; }
+  .proj-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--green); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .proj-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--green); }
+  .proj-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(38px, 5vw, 70px); font-weight: 600; line-height: 1.0; letter-spacing: -1px; margin-bottom: 24px; }
+  .proj-title em { font-style: italic; color: var(--green); }
+  .proj-subtitle { font-size: 16px; font-weight: 300; color: var(--muted); max-width: 480px; line-height: 1.7; margin-bottom: 32px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .proj-tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border: 1px solid var(--border); color: var(--muted); }
+  .proj-tag.active { border-color: var(--green); color: var(--green); }
+
+  /* LIVE DASHBOARD PANEL */
+  .dashboard-preview { background: var(--panel); border: 1px solid var(--border); padding: 28px; }
+  .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .dash-title-sm { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .dash-live { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--green); display: flex; align-items: center; gap: 6px; }
+  .dash-live::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .mini-kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .mini-kpi { background: var(--panel2); padding: 14px; }
+  .mini-kpi-val { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: var(--green); line-height: 1; }
+  .mini-kpi-lbl { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+  .mini-chart-wrap { height: 120px; position: relative; }
+
+  /* BODY */
+  .proj-body { max-width: 1200px; margin: 0 auto; padding: 64px 56px 96px; }
+  .block { margin-bottom: 64px; }
+  .block-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--green); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+  .block-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .block-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 600; line-height: 1.2; margin-bottom: 16px; }
+  .block-text { font-size: 15px; font-weight: 300; color: var(--muted); line-height: 1.8; max-width: 720px; }
+  .block-text + .block-text { margin-top: 12px; }
+
+  /* CHARTS */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 28px; }
+  .chart-card { background: var(--panel); border: 1px solid var(--border); padding: 24px; }
+  .chart-card.wide { grid-column: span 2; }
+  .chart-card h4 { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+  .chart-wrap { position: relative; height: 200px; }
+  .chart-wrap.tall { height: 260px; }
+
+  /* IMPACT COMPARISON TABLE */
+  .impact-table { width: 100%; border-collapse: collapse; margin-top: 28px; }
+  .impact-table th { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); padding: 10px 16px; text-align: left; }
+  .impact-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .impact-table tr:hover td { background: var(--panel2); }
+  .co2-saved { color: var(--green); font-family: 'Space Mono', monospace; font-weight: 700; }
+  .co2-bad { color: var(--red); font-family: 'Space Mono', monospace; }
+  .energy-saved { color: var(--teal); font-family: 'Space Mono', monospace; }
+
+  /* BIG NUMBER CALLOUTS */
+  .callout-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-top: 28px; }
+  .callout { background: var(--panel); border: 1px solid var(--border); padding: 28px 20px; text-align: center; }
+  .callout-num { font-family: 'Space Mono', monospace; font-size: 32px; font-weight: 700; color: var(--green); line-height: 1; }
+  .callout-unit { font-size: 12px; color: var(--green); margin-top: 2px; }
+  .callout-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
+
+  /* WORKFLOW */
+  .workflow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin-top: 28px; }
+  .wf-step { background: var(--panel); border: 1px solid var(--border); padding: 24px 16px; }
+  .wf-num { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--green); margin-bottom: 10px; }
+  .wf-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .wf-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+  /* TOOLS */
+  .tools-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .tool-chip { border: 1px solid var(--border); color: var(--green); padding: 7px 16px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Space Mono', monospace; }
+
+  @media (max-width: 900px) {
+    .back-bar, .proj-hero, .proj-body { padding-left: 24px; padding-right: 24px; }
+    .hero-inner { grid-template-columns: 1fr; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .chart-card.wide { grid-column: span 1; }
+    .callout-row { grid-template-columns: 1fr 1fr; }
+    .workflow { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back-bar">
+  <a class="back-link" href="mayowa_portfolio.html">&#8592; Back to Portfolio</a>
+  <a class="back-link" href="https://github.com/mayowa0/data-analytics-portfolio/blob/main/co2_recycling_analysis.ipynb" target="_blank" style="margin-left:auto; letter-spacing:1.5px;">
+    &#128196; View Code on GitHub &#8599;
+  </a>
+</div>
+
+<div class="proj-hero">
+  <div class="hero-inner">
+    <div>
+      <div class="proj-eyebrow">Environment · Sustainability</div>
+      <h1 class="proj-title">CO₂ Emissions &amp;<br><em>Recycling Impact</em><br>Dashboard</h1>
+      <p class="proj-subtitle">Quantifying the environmental benefit of metallurgical recycling — translating material recovery data into CO₂ savings, energy reduction, and circular economy metrics.</p>
+      <div class="tag-row">
+        <span class="proj-tag active">Excel</span>
+        <span class="proj-tag active">Tableau</span>
+        <span class="proj-tag active">Python</span>
+        <span class="proj-tag">EDA</span>
+        <span class="proj-tag">Sustainability</span>
+        <span class="proj-tag">Circular Economy</span>
+      </div>
+    </div>
+
+    <!-- MINI DASHBOARD PREVIEW -->
+    <div class="dashboard-preview">
+      <div class="dash-header">
+        <span class="dash-title-sm">Environmental Impact Tracker</span>
+        <span class="dash-live">Live Preview</span>
+      </div>
+      <div class="mini-kpi-row">
+        <div class="mini-kpi">
+          <div class="mini-kpi-val">248k</div>
+          <div class="mini-kpi-lbl">Tonnes CO₂ Saved</div>
+        </div>
+        <div class="mini-kpi">
+          <div class="mini-kpi-val">94%</div>
+          <div class="mini-kpi-lbl">Al Energy Saving</div>
+        </div>
+        <div class="mini-kpi">
+          <div class="mini-kpi-val">58%</div>
+          <div class="mini-kpi-lbl">Steel CO₂ Cut</div>
+        </div>
+        <div class="mini-kpi">
+          <div class="mini-kpi-val">3.2M</div>
+          <div class="mini-kpi-lbl">kWh Recovered</div>
+        </div>
+      </div>
+      <div class="mini-chart-wrap">
+        <canvas id="miniChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="proj-body">
+
+  <!-- OVERVIEW -->
+  <div class="block">
+    <div class="block-label">Context</div>
+    <div class="block-title">From Research to Dashboard</div>
+    <p class="block-text">This project was directly inspired by my co-authored publication on "Recycling and Reuse of Materials in Metallurgical Processes" (Harvard IJERT, 2025). The paper surfaced a critical question: how much environmental benefit is actually being captured — or lost — in Nigeria's informal recycling sector?</p>
+    <p class="block-text">To answer that with data, I built an interactive Excel-based impact calculator and a Tableau dashboard that quantifies CO₂ savings, energy reduction, and material recovery rates for five key metal streams: aluminium, steel, copper, lead, and e-waste. The dashboard was designed to be usable by policymakers and sustainability managers — not just data scientists.</p>
+  </div>
+
+  <!-- WORKFLOW -->
+  <div class="block">
+    <div class="block-label">Process</div>
+    <div class="block-title">How It Was Built</div>
+    <div class="workflow">
+      <div class="wf-step">
+        <div class="wf-num">// 01</div>
+        <div class="wf-title">Data Collection</div>
+        <div class="wf-desc">Gathered emission factors from IEA, World Steel, Int'l Aluminium Institute. Recycling volume data from NBS &amp; NERC.</div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">// 02</div>
+        <div class="wf-title">Excel Model</div>
+        <div class="wf-desc">Built a dynamic calculator with emission factor tables, scenario sliders (recycling rate %), and auto-calculating CO₂ &amp; energy outputs.</div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">// 03</div>
+        <div class="wf-title">Python EDA</div>
+        <div class="wf-desc">Cleaned and enriched data with Pandas. Ran correlation analysis between digitalization scores and recovery efficiency.</div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">// 04</div>
+        <div class="wf-title">Tableau Viz</div>
+        <div class="wf-desc">Built 4-page interactive dashboard: overview, material breakdown, zonal comparison, and trend projection to 2030.</div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">// 05</div>
+        <div class="wf-title">Insight Report</div>
+        <div class="wf-desc">Wrote a 2-page summary of findings for a non-technical audience — bridging the gap between data and policy.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="block">
+    <div class="block-label">Dashboard</div>
+    <div class="block-title">Key Visualizations</div>
+    <div class="chart-grid">
+      <div class="chart-card wide">
+        <h4>CO₂ Saved per Metal Type — Recycled vs. Primary Production (kg CO₂/tonne)</h4>
+        <div class="chart-wrap tall">
+          <canvas id="co2Chart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h4>Energy Saving by Metal (%)</h4>
+        <div class="chart-wrap tall">
+          <canvas id="energyChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid" style="margin-top: 16px;">
+      <div class="chart-card">
+        <h4>Recycling Rate Trend — Lagos Formal Sector (2018–2024)</h4>
+        <div class="chart-wrap">
+          <canvas id="rateChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card wide">
+        <h4>Digitalization Score vs. Metal Recovery Efficiency (Scatter)</h4>
+        <div class="chart-wrap">
+          <canvas id="scatterChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPACT TABLE -->
+  <div class="block">
+    <div class="block-label">Analysis</div>
+    <div class="block-title">Environmental Impact by Metal Stream</div>
+    <table class="impact-table">
+      <tr>
+        <th>Metal</th>
+        <th>Primary CO₂ (kg/tonne)</th>
+        <th>Recycled CO₂ (kg/tonne)</th>
+        <th>CO₂ Saved</th>
+        <th>Energy Saving</th>
+        <th>Nigeria Vol. (tonnes/yr)</th>
+      </tr>
+      <tr>
+        <td><strong>Aluminium</strong></td>
+        <td class="co2-bad">11,500</td>
+        <td>700</td>
+        <td class="co2-saved">10,800 (-94%)</td>
+        <td class="energy-saved">95%</td>
+        <td>18,400</td>
+      </tr>
+      <tr>
+        <td><strong>Steel</strong></td>
+        <td class="co2-bad">1,850</td>
+        <td>776</td>
+        <td class="co2-saved">1,074 (-58%)</td>
+        <td class="energy-saved">60%</td>
+        <td>142,000</td>
+      </tr>
+      <tr>
+        <td><strong>Copper</strong></td>
+        <td class="co2-bad">4,100</td>
+        <td>615</td>
+        <td class="co2-saved">3,485 (-85%)</td>
+        <td class="energy-saved">85%</td>
+        <td>6,200</td>
+      </tr>
+      <tr>
+        <td><strong>Lead (batteries)</strong></td>
+        <td class="co2-bad">1,700</td>
+        <td>340</td>
+        <td class="co2-saved">1,360 (-80%)</td>
+        <td class="energy-saved">65%</td>
+        <td>22,000</td>
+      </tr>
+      <tr>
+        <td><strong>E-waste metals</strong></td>
+        <td class="co2-bad">~6,000</td>
+        <td>900</td>
+        <td class="co2-saved">5,100 (-85%)</td>
+        <td class="energy-saved">78%</td>
+        <td>4,800</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- CALLOUTS -->
+  <div class="block">
+    <div class="block-label">Summary Impact</div>
+    <div class="block-title">If Lagos Formalised All Recycling</div>
+    <div class="callout-row">
+      <div class="callout">
+        <div class="callout-num">248k</div>
+        <div class="callout-unit">tonnes</div>
+        <div class="callout-lbl">CO₂ Avoided Annually</div>
+      </div>
+      <div class="callout">
+        <div class="callout-num">3.2M</div>
+        <div class="callout-unit">kWh</div>
+        <div class="callout-lbl">Energy Recovered</div>
+      </div>
+      <div class="callout">
+        <div class="callout-num">₦12B</div>
+        <div class="callout-unit">est.</div>
+        <div class="callout-lbl">Economic Value Unlocked</div>
+      </div>
+      <div class="callout">
+        <div class="callout-num">14k+</div>
+        <div class="callout-unit">jobs</div>
+        <div class="callout-lbl">Formal Sector Potential</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="block">
+    <div class="block-label">Stack</div>
+    <div class="block-title">Tools Used</div>
+    <div class="tools-row">
+      <span class="tool-chip">Microsoft Excel</span>
+      <span class="tool-chip">Tableau Public</span>
+      <span class="tool-chip">Python</span>
+      <span class="tool-chip">Pandas</span>
+      <span class="tool-chip">Seaborn</span>
+      <span class="tool-chip">IEA Data API</span>
+      <span class="tool-chip">World Bank Open Data</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+Chart.defaults.color = '#7a9e7e';
+Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+Chart.defaults.font.size = 11;
+
+// Mini hero chart
+new Chart(document.getElementById('miniChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Al','Steel','Cu','Pb','E-waste'],
+    datasets: [{ data: [94, 58, 85, 80, 85], backgroundColor: 'rgba(74,222,128,0.7)', borderWidth: 0 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: '#243826' }, ticks: { callback: v => v+'%', font: { size: 9 } } },
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// CO2 comparison
+new Chart(document.getElementById('co2Chart'), {
+  type: 'bar',
+  data: {
+    labels: ['Aluminium','Steel','Copper','Lead','E-waste'],
+    datasets: [
+      { label: 'Primary Production', data: [11500, 1850, 4100, 1700, 6000], backgroundColor: 'rgba(248,113,113,0.6)', borderWidth: 0 },
+      { label: 'Recycled', data: [700, 776, 615, 340, 900], backgroundColor: 'rgba(74,222,128,0.8)', borderWidth: 0 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16 } } },
+    scales: {
+      y: { grid: { color: '#243826' }, ticks: { callback: v => (v/1000).toFixed(1)+'k' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Energy saving
+new Chart(document.getElementById('energyChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Aluminium','Copper','E-waste','Lead','Steel'],
+    datasets: [{ data: [95, 85, 78, 65, 60], backgroundColor: ['rgba(45,212,191,0.9)','rgba(45,212,191,0.8)','rgba(45,212,191,0.7)','rgba(45,212,191,0.6)','rgba(45,212,191,0.5)'], borderWidth: 0 }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#243826' }, max: 100, ticks: { callback: v => v+'%' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// Rate trend
+new Chart(document.getElementById('rateChart'), {
+  type: 'line',
+  data: {
+    labels: ['2018','2019','2020','2021','2022','2023','2024'],
+    datasets: [{
+      label: 'Formal Recycling Rate (%)',
+      data: [8.2, 9.1, 8.8, 10.4, 11.2, 12.1, 13.4],
+      borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.06)',
+      tension: 0.4, fill: true, pointBackgroundColor: '#4ade80', pointRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: '#243826' }, ticks: { callback: v => v+'%' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Scatter
+new Chart(document.getElementById('scatterChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Facilities',
+      data: [
+        {x:5, y:91.2},{x:4, y:88.6},{x:3, y:86.3},{x:4, y:89.5},{x:5, y:92.0},
+        {x:0, y:76.4},{x:0, y:74.8},{x:0, y:77.1},{x:0, y:75.5},{x:0, y:73.9}
+      ],
+      backgroundColor: ctx => {
+        const v = ctx.raw;
+        return v && v.x > 2 ? 'rgba(74,222,128,0.8)' : 'rgba(248,113,113,0.6)';
+      },
+      pointRadius: 7, pointHoverRadius: 9
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#243826' }, title: { display: true, text: 'Digitalization Score', color: '#7a9e7e', font: { size: 11 } } },
+      y: { grid: { color: '#243826' }, title: { display: true, text: 'Metal Recovery (%)', color: '#7a9e7e', font: { size: 11 } }, min: 70, max: 95 }
+    }
+  }
+});
+</script>
+</body>
+</html>
