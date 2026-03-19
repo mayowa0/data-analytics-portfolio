@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nigeria Energy Access Analysis · Mayowa Alamutu</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #faf7f2;
+    --surface: #fff;
+    --ink: #1a1a1a;
+    --orange: #d4500a;
+    --orange-light: #f97316;
+    --orange-pale: #fed7aa;
+    --blue: #1d4ed8;
+    --muted: #6b7280;
+    --border: #e5e0d8;
+    --yellow: #eab308;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Barlow', sans-serif; font-size: 14px; line-height: 1.7; }
+
+  /* BACK */
+  .back-bar { padding: 20px 64px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .back-link { text-decoration: none; color: var(--muted); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; transition: color 0.2s; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+  .back-link:hover { color: var(--orange); }
+
+  /* HERO - editorial newspaper style */
+  .proj-hero { background: var(--ink); color: var(--bg); padding: 80px 64px 64px; position: relative; overflow: hidden; }
+  .hero-rule { display: grid; grid-template-columns: 1fr 3fr; gap: 48px; align-items: start; max-width: 1100px; margin: 0 auto; }
+  .hero-sidebar { padding-top: 8px; }
+  .proj-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--orange-light); margin-bottom: 16px; }
+  .proj-date { font-size: 11px; color: rgba(250,247,242,0.4); letter-spacing: 1px; margin-bottom: 32px; }
+  .sidebar-stat { margin-bottom: 24px; border-top: 1px solid rgba(250,247,242,0.15); padding-top: 16px; }
+  .sidebar-val { font-family: 'Barlow Condensed', sans-serif; font-size: 40px; font-weight: 700; color: var(--orange-light); line-height: 1; }
+  .sidebar-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(250,247,242,0.5); margin-top: 4px; }
+  .proj-title { font-family: 'Libre Baskerville', serif; font-size: clamp(32px, 4.5vw, 62px); font-weight: 700; line-height: 1.05; letter-spacing: -1px; margin-bottom: 20px; }
+  .proj-title em { font-style: italic; color: var(--orange-light); }
+  .proj-subtitle { font-size: 18px; font-weight: 300; color: rgba(250,247,242,0.7); max-width: 560px; line-height: 1.6; margin-bottom: 32px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .proj-tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border: 1px solid rgba(250,247,242,0.2); color: rgba(250,247,242,0.6); }
+  .proj-tag.orange { border-color: var(--orange-light); color: var(--orange-light); }
+
+  /* BODY */
+  .proj-body { max-width: 1100px; margin: 0 auto; padding: 64px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 64px; align-items: start; }
+  .block { margin-bottom: 56px; }
+  .block-label { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); margin-bottom: 12px; }
+  .block-title { font-family: 'Libre Baskerville', serif; font-size: 26px; font-weight: 700; line-height: 1.2; margin-bottom: 16px; }
+  .block-text { font-size: 15px; font-weight: 300; color: #374151; line-height: 1.8; }
+  .block-text + .block-text { margin-top: 12px; }
+
+  /* CHARTS */
+  .chart-card { background: var(--surface); border: 1px solid var(--border); padding: 28px; }
+  .chart-card h4 { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+  .chart-wrap { position: relative; height: 240px; }
+  .chart-full { margin-top: 32px; }
+  .chart-full .chart-wrap { height: 280px; }
+
+  /* NIGERIA MAP VISUAL (CSS art) */
+  .map-placeholder { background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 50%, #0f172a 100%); height: 280px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .map-placeholder::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 40% 60%, rgba(249,115,22,0.3) 0%, transparent 60%); }
+  .map-label { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.5); z-index: 2; }
+
+  /* DATA TABLE */
+  .data-table { width: 100%; border-collapse: collapse; margin-top: 28px; font-size: 13px; }
+  .data-table th { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--border); padding: 8px 12px; text-align: left; }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: #374151; }
+  .data-table tr:hover td { background: rgba(212,80,10,0.04); }
+  .access-bar { height: 6px; background: var(--border); border-radius: 0; display: inline-block; width: 100px; vertical-align: middle; margin-right: 8px; }
+  .access-fill { height: 6px; background: var(--orange); display: block; }
+  .zone-badge { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--border); color: var(--muted); }
+
+  /* FINDINGS */
+  .findings-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 28px; }
+  .finding-card { border-left: 4px solid var(--orange); padding: 20px; background: var(--surface); }
+  .finding-num { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 700; color: var(--orange); line-height: 1; margin-bottom: 8px; }
+  .finding-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* TOOLS */
+  .tools-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .tool-chip { background: var(--ink); color: var(--bg); padding: 7px 16px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
+
+  @media (max-width: 768px) {
+    .back-bar, .proj-hero, .proj-body { padding-left: 24px; padding-right: 24px; }
+    .hero-rule { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .findings-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back-bar">
+  <a class="back-link" href="mayowa_portfolio.html">&#8592; Back to Portfolio</a>
+  <a class="back-link" href="https://github.com/mayowa0/data-analytics-portfolio/blob/main/nigeria_energy_analysis.ipynb" target="_blank" style="margin-left:auto; letter-spacing:1.5px;">
+    &#128196; View Code on GitHub &#8599;
+  </a>
+</div>
+
+<div class="proj-hero">
+  <div class="hero-rule">
+    <div class="hero-sidebar">
+      <div class="proj-eyebrow">Energy &amp; Environment</div>
+      <div class="proj-date">Analysis · 2025</div>
+      <div class="sidebar-stat"><div class="sidebar-val">57%</div><div class="sidebar-lbl">Nigeria Grid Access Rate</div></div>
+      <div class="sidebar-stat"><div class="sidebar-val">85M+</div><div class="sidebar-lbl">People Without Reliable Power</div></div>
+      <div class="sidebar-stat"><div class="sidebar-val">6</div><div class="sidebar-lbl">Geopolitical Zones Analysed</div></div>
+    </div>
+    <div class="hero-main">
+      <h1 class="proj-title">Nigeria<br>Energy Access<br><em>Analysis</em></h1>
+      <p class="proj-subtitle">A data-driven exploration of electricity access disparities across Nigeria's six geopolitical zones — identifying the gaps, the causes, and the path forward.</p>
+      <div class="tag-row">
+        <span class="proj-tag orange">Python</span>
+        <span class="proj-tag orange">Power BI</span>
+        <span class="proj-tag">EDA</span>
+        <span class="proj-tag">Data Visualization</span>
+        <span class="proj-tag">Public Data</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="proj-body">
+
+  <!-- OVERVIEW -->
+  <div class="two-col">
+    <div>
+      <div class="block-label">Background</div>
+      <div class="block-title">Why Energy Access?</div>
+      <p class="block-text">Nigeria is Africa's largest economy yet ranks among the world's worst for electricity reliability. With an installed capacity of ~12,500 MW but actual generation averaging 3,500–4,000 MW, the gap between potential and delivery is enormous.</p>
+      <p class="block-text">This project uses publicly available data from the World Bank, Nigeria Electricity Regulatory Commission (NERC), and the Nigerian Bureau of Statistics to map, visualize, and analyse electricity access patterns across all 36 states and 6 geopolitical zones.</p>
+    </div>
+    <div>
+      <div class="block-label">Data Sources</div>
+      <div class="block-title">What Was Analysed</div>
+      <table class="data-table">
+        <tr><th>Source</th><th>Data</th></tr>
+        <tr><td>World Bank Open Data</td><td>Access rates 2010–2023</td></tr>
+        <tr><td>NERC Annual Reports</td><td>Generation, distribution KPIs</td></tr>
+        <tr><td>NBS Statistical Reports</td><td>State-level household data</td></tr>
+        <tr><td>IEA Africa Energy</td><td>Renewable potential indices</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ZONAL TABLE -->
+  <div class="block">
+    <div class="block-label">Findings</div>
+    <div class="block-title">Electricity Access by Geopolitical Zone</div>
+    <p class="block-text">Access rates vary dramatically across Nigeria's six zones, driven by infrastructure investment, urbanization, and proximity to generation assets.</p>
+    <table class="data-table" style="margin-top:24px">
+      <tr>
+        <th>Zone</th>
+        <th>Avg. Access Rate</th>
+        <th>Visual</th>
+        <th>Key States</th>
+        <th>Primary Gap</th>
+      </tr>
+      <tr>
+        <td><strong>South West</strong></td>
+        <td>78%</td>
+        <td><span class="access-bar"><span class="access-fill" style="width:78px;background:#d4500a"></span></span></td>
+        <td>Lagos, Ogun, Oyo</td>
+        <td>Reliability, not access</td>
+      </tr>
+      <tr>
+        <td><strong>South South</strong></td>
+        <td>65%</td>
+        <td><span class="access-bar"><span class="access-fill" style="width:65px;background:#d4500a"></span></span></td>
+        <td>Rivers, Delta, Edo</td>
+        <td>Grid stability / vandalism</td>
+      </tr>
+      <tr>
+        <td><strong>South East</strong></td>
+        <td>61%</td>
+        <td><span class="access-bar"><span class="access-fill" style="width:61px;background:#d4500a"></span></span></td>
+        <td>Enugu, Anambra, Imo</td>
+        <td>Last-mile distribution</td>
+      </tr>
+      <tr>
+        <td><strong>North Central</strong></td>
+        <td>52%</td>
+        <td><span class="access-bar"><span class="access-fill" style="width:52px;background:#f97316"></span></span></td>
+        <td>Abuja, Kogi, Plateau</td>
+        <td>Rural electrification</td>
+      </tr>
+      <tr>
+        <td><strong>North West</strong></td>
+        <td>38%</td>
+        <td><span class="access-bar"><span class="access-fill" style="width:38px;background:#eab308"></span></span></td>
+        <td>Kano, Kaduna, Sokoto</td>
+        <td>Generation deficit &amp; coverage</td>
+      </tr>
+      <tr>
+        <td><strong>North East</strong></td>
+        <td>27%</td>
+        <td><span class="access-bar"><span class="access-fill" style="width:27px;background:#6b7280"></span></span></td>
+        <td>Borno, Adamawa, Yobe</td>
+        <td>Infrastructure &amp; conflict</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="two-col">
+    <div class="chart-card">
+      <h4>Access Rate Trend — Nigeria (2010–2023)</h4>
+      <div class="chart-wrap">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h4>Energy Mix — Nigeria 2024</h4>
+      <div class="chart-wrap">
+        <canvas id="mixChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card chart-full">
+    <h4>Generation vs. Demand Gap (MW) — 2018–2024</h4>
+    <div class="chart-wrap">
+      <canvas id="gapChart"></canvas>
+    </div>
+  </div>
+
+  <!-- KEY FINDINGS -->
+  <div class="block" style="margin-top: 56px;">
+    <div class="block-label">Key Insights</div>
+    <div class="block-title">What the Data Reveals</div>
+    <div class="findings-grid">
+      <div class="finding-card">
+        <div class="finding-num">3×</div>
+        <div class="finding-text">South West access rate is nearly 3x that of the North East — the largest intra-country energy disparity in sub-Saharan Africa.</div>
+      </div>
+      <div class="finding-card">
+        <div class="finding-num">+2.1%</div>
+        <div class="finding-text">Average annual improvement in national access rate (2010–2023), driven almost entirely by off-grid solar adoption in rural areas.</div>
+      </div>
+      <div class="finding-card">
+        <div class="finding-num">68%</div>
+        <div class="finding-text">Of Nigeria's electricity is still gas-fired, creating severe exposure to gas supply disruption and vandalism of pipelines.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="block">
+    <div class="block-label">Stack</div>
+    <div class="block-title">Tools Used</div>
+    <div class="tools-row">
+      <span class="tool-chip">Python 3.11</span>
+      <span class="tool-chip">Pandas</span>
+      <span class="tool-chip">Seaborn</span>
+      <span class="tool-chip">Matplotlib</span>
+      <span class="tool-chip">Power BI</span>
+      <span class="tool-chip">Excel</span>
+      <span class="tool-chip">World Bank API</span>
+      <span class="tool-chip">Jupyter Notebook</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+Chart.defaults.color = '#6b7280';
+Chart.defaults.font.family = "'Barlow', sans-serif";
+Chart.defaults.font.size = 11;
+
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels: ['2010','2012','2014','2016','2018','2020','2022','2023'],
+    datasets: [{
+      label: 'Access Rate (%)',
+      data: [45.0, 47.8, 49.2, 51.0, 53.5, 55.1, 56.4, 57.0],
+      borderColor: '#d4500a', backgroundColor: 'rgba(212,80,10,0.08)',
+      tension: 0.4, fill: true, pointBackgroundColor: '#d4500a', pointRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 40, max: 65, grid: { color: '#e5e0d8' }, ticks: { callback: v => v + '%' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+new Chart(document.getElementById('mixChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Natural Gas', 'Hydro', 'Oil/Diesel', 'Solar/Renewables'],
+    datasets: [{
+      data: [68, 20, 8, 4],
+      backgroundColor: ['#d4500a', '#1d4ed8', '#6b7280', '#22c55e'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16 } }
+    },
+    cutout: '65%'
+  }
+});
+
+new Chart(document.getElementById('gapChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2018','2019','2020','2021','2022','2023','2024'],
+    datasets: [
+      {
+        label: 'Actual Generation (MW)',
+        data: [3800, 3950, 3600, 3750, 3900, 4050, 4100],
+        backgroundColor: 'rgba(212,80,10,0.8)',
+      },
+      {
+        label: 'Estimated Demand (MW)',
+        data: [15000, 15800, 15500, 16200, 17000, 17800, 18500],
+        backgroundColor: 'rgba(29,78,216,0.3)',
+        borderColor: '#1d4ed8', borderWidth: 1,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16 } } },
+    scales: {
+      y: { grid: { color: '#e5e0d8' }, ticks: { callback: v => (v/1000).toFixed(0) + 'k MW' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>

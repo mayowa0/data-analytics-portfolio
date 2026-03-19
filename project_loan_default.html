@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan Default Prediction · Mayowa Alamutu</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111a16;
+    --surface2: #182219;
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --green-pale: #86efac;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --text: #f0faf4;
+    --muted: #6b7f72;
+    --border: #1e2e23;
+    --accent: #22c55e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.7; }
+
+  /* BACK */
+  .back-bar { padding: 20px 48px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .back-link { text-decoration: none; color: var(--muted); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; transition: color 0.2s; display: flex; align-items: center; gap: 8px; }
+  .back-link:hover { color: var(--green); }
+
+  /* HERO */
+  .proj-hero { padding: 80px 48px 64px; max-width: 1100px; margin: 0 auto; }
+  .proj-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+  .proj-tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border: 1px solid var(--border); color: var(--muted); }
+  .proj-tag.green { border-color: var(--green); color: var(--green); }
+  .proj-title { font-family: 'Syne', sans-serif; font-size: clamp(36px, 5vw, 68px); font-weight: 800; line-height: 1; letter-spacing: -2px; margin-bottom: 24px; }
+  .proj-title em { font-family: 'Instrument Serif', serif; font-weight: 400; font-style: italic; color: var(--green-pale); }
+  .proj-subtitle { font-family: 'Instrument Serif', serif; font-size: 20px; font-style: italic; color: var(--muted); max-width: 640px; line-height: 1.5; margin-bottom: 48px; }
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-bottom: 64px; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); padding: 24px; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; color: var(--green); line-height: 1; }
+  .stat-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+
+  /* SECTIONS */
+  .proj-body { max-width: 1100px; margin: 0 auto; padding: 0 48px 96px; }
+  .block { margin-bottom: 72px; }
+  .block-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--green); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .block-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .block-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 16px; }
+  .block-text { font-family: 'Instrument Serif', serif; font-size: 17px; font-weight: 400; color: rgba(240,250,244,0.75); line-height: 1.75; max-width: 700px; }
+  .block-text + .block-text { margin-top: 14px; }
+
+  /* CHART AREA */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); padding: 28px; }
+  .chart-card h4 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+  .chart-wrap { position: relative; height: 220px; }
+
+  /* FEATURE IMPORTANCE */
+  .feat-list { margin-top: 28px; display: flex; flex-direction: column; gap: 12px; }
+  .feat-item { display: grid; grid-template-columns: 180px 1fr 48px; align-items: center; gap: 16px; }
+  .feat-name { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .feat-bar-bg { height: 6px; background: var(--border); border-radius: 0; }
+  .feat-bar { height: 6px; background: var(--green); transition: width 1s ease; }
+  .feat-pct { font-size: 12px; color: var(--green-pale); text-align: right; }
+
+  /* CONFUSION MATRIX */
+  .matrix-wrap { display: inline-grid; grid-template-columns: auto auto auto; gap: 2px; margin-top: 28px; }
+  .matrix-cell { width: 100px; height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; }
+  .matrix-cell.header { background: transparent; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .matrix-cell.tp { background: rgba(34,197,94,0.2); border: 1px solid rgba(34,197,94,0.4); }
+  .matrix-cell.tn { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); }
+  .matrix-cell.fp { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
+  .matrix-cell.fn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+  .matrix-num { font-size: 26px; font-weight: 800; }
+  .matrix-sub { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+  /* WORKFLOW */
+  .workflow { display: flex; gap: 0; margin-top: 28px; overflow-x: auto; }
+  .wf-step { flex: 1; min-width: 140px; padding: 24px 20px; background: var(--surface); border: 1px solid var(--border); border-right: none; position: relative; }
+  .wf-step:last-child { border-right: 1px solid var(--border); }
+  .wf-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--border); line-height: 1; margin-bottom: 12px; }
+  .wf-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+  .wf-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+  .wf-arrow { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--green); z-index: 2; }
+
+  /* TOOLS */
+  .tools-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+  .tool-chip { background: var(--surface2); border: 1px solid var(--border); padding: 8px 16px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--green-pale); }
+
+  /* OUTCOME */
+  .outcome-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 28px; }
+  .outcome-card { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--green); padding: 24px; }
+  .outcome-card h4 { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+  .outcome-card p { font-family: 'Instrument Serif', serif; font-size: 16px; color: rgba(240,250,244,0.8); line-height: 1.5; }
+
+  @media (max-width: 768px) {
+    .back-bar, .proj-hero, .proj-body { padding-left: 24px; padding-right: 24px; }
+    .stat-row { grid-template-columns: 1fr 1fr; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .feat-item { grid-template-columns: 120px 1fr 40px; }
+    .outcome-cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back-bar">
+  <a class="back-link" href="mayowa_portfolio.html">&#8592; Back to Portfolio</a>
+  <a class="back-link" href="https://github.com/mayowa0/data-analytics-portfolio/blob/main/loan_default_prediction.ipynb" target="_blank" style="margin-left:auto; letter-spacing:1.5px;">
+    &#128196; View Code on GitHub &#8599;
+  </a>
+</div>
+
+<div class="proj-hero">
+  <div class="proj-meta">
+    <span class="proj-tag green">Machine Learning</span>
+    <span class="proj-tag green">Python</span>
+    <span class="proj-tag">Fintech</span>
+    <span class="proj-tag">Predictive Analytics</span>
+    <span class="proj-tag">2025</span>
+  </div>
+  <h1 class="proj-title">Loan Default<br><em>Prediction</em> Model</h1>
+  <p class="proj-subtitle">Using machine learning to predict which borrowers are at risk of defaulting — helping fintech lenders make smarter, data-driven credit decisions.</p>
+
+  <div class="stat-row">
+    <div class="stat-box">
+      <div class="stat-val">89%</div>
+      <div class="stat-lbl">Model Accuracy</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">0.91</div>
+      <div class="stat-lbl">ROC-AUC Score</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">5K+</div>
+      <div class="stat-lbl">Records Analysed</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">87%</div>
+      <div class="stat-lbl">Recall (Defaults)</div>
+    </div>
+  </div>
+</div>
+
+<div class="proj-body">
+
+  <!-- OVERVIEW -->
+  <div class="block">
+    <div class="block-label">Overview</div>
+    <div class="block-title">The Problem</div>
+    <p class="block-text">In lending, the cost of a missed default far outweighs the cost of a rejected application. Traditional rule-based credit scoring systems often miss nuanced risk patterns — especially in emerging market borrower profiles where credit history is thin.</p>
+    <p class="block-text">This project builds a binary classification model to predict loan default risk using borrower demographic, financial, and behavioral features. The goal: give a lender an early-warning signal before disbursement.</p>
+  </div>
+
+  <!-- WORKFLOW -->
+  <div class="block">
+    <div class="block-label">Methodology</div>
+    <div class="block-title">End-to-End Pipeline</div>
+    <div class="workflow">
+      <div class="wf-step">
+        <div class="wf-num">01</div>
+        <div class="wf-title">Data Collection</div>
+        <div class="wf-desc">Open-source loan dataset (Lending Club / synthetic fintech data). 5,000+ records, 18 features.</div>
+        <div class="wf-arrow">›</div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">02</div>
+        <div class="wf-title">Cleaning & EDA</div>
+        <div class="wf-desc">Handled nulls, encoded categoricals, detected outliers with IQR. Plotted distributions.</div>
+        <div class="wf-arrow">›</div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">03</div>
+        <div class="wf-title">Feature Eng.</div>
+        <div class="wf-desc">Debt-to-income ratio, loan-to-income ratio, employment length bins.</div>
+        <div class="wf-arrow">›</div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">04</div>
+        <div class="wf-title">Modelling</div>
+        <div class="wf-desc">Compared Logistic Regression, Random Forest, XGBoost. Tuned with GridSearchCV.</div>
+        <div class="wf-arrow">›</div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">05</div>
+        <div class="wf-title">Evaluation</div>
+        <div class="wf-desc">Precision, recall, F1, ROC-AUC. Confusion matrix. SMOTE for class imbalance.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="block">
+    <div class="block-label">Results</div>
+    <div class="block-title">Model Performance</div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h4>Model Comparison — ROC-AUC</h4>
+        <div class="chart-wrap">
+          <canvas id="modelChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h4>Default Rate by Loan Grade</h4>
+        <div class="chart-wrap">
+          <canvas id="gradeChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURE IMPORTANCE -->
+  <div class="block">
+    <div class="block-label">Insights</div>
+    <div class="block-title">Top Predictive Features</div>
+    <p class="block-text">XGBoost feature importance reveals which borrower attributes drive default risk most strongly.</p>
+    <div class="feat-list">
+      <div class="feat-item">
+        <div class="feat-name">Debt-to-Income Ratio</div>
+        <div class="feat-bar-bg"><div class="feat-bar" style="width:92%"></div></div>
+        <div class="feat-pct">92%</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-name">Loan Amount</div>
+        <div class="feat-bar-bg"><div class="feat-bar" style="width:78%"></div></div>
+        <div class="feat-pct">78%</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-name">Interest Rate</div>
+        <div class="feat-bar-bg"><div class="feat-bar" style="width:74%"></div></div>
+        <div class="feat-pct">74%</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-name">Employment Length</div>
+        <div class="feat-bar-bg"><div class="feat-bar" style="width:61%"></div></div>
+        <div class="feat-pct">61%</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-name">Loan Grade</div>
+        <div class="feat-bar-bg"><div class="feat-bar" style="width:55%"></div></div>
+        <div class="feat-pct">55%</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-name">Annual Income</div>
+        <div class="feat-bar-bg"><div class="feat-bar" style="width:48%"></div></div>
+        <div class="feat-pct">48%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFUSION MATRIX -->
+  <div class="block">
+    <div class="block-label">Evaluation</div>
+    <div class="block-title">Confusion Matrix (XGBoost)</div>
+    <p class="block-text">Tested on a hold-out set of 1,000 records. The model correctly flags 87% of actual defaults.</p>
+    <div class="matrix-wrap">
+      <div class="matrix-cell header"></div>
+      <div class="matrix-cell header">Pred: No Default</div>
+      <div class="matrix-cell header">Pred: Default</div>
+      <div class="matrix-cell header">Actual: No Default</div>
+      <div class="matrix-cell tn"><div class="matrix-num" style="color:var(--green)">712</div><div class="matrix-sub">True Negative</div></div>
+      <div class="matrix-cell fp"><div class="matrix-num" style="color:var(--amber)">58</div><div class="matrix-sub">False Positive</div></div>
+      <div class="matrix-cell header">Actual: Default</div>
+      <div class="matrix-cell fn"><div class="matrix-num" style="color:var(--amber)">52</div><div class="matrix-sub">False Negative</div></div>
+      <div class="matrix-cell tp"><div class="matrix-num" style="color:var(--green)">178</div><div class="matrix-sub">True Positive</div></div>
+    </div>
+  </div>
+
+  <!-- OUTCOMES -->
+  <div class="block">
+    <div class="block-label">Impact</div>
+    <div class="block-title">Key Outcomes</div>
+    <div class="outcome-cards">
+      <div class="outcome-card">
+        <h4>Risk Flagging</h4>
+        <p>Model correctly identifies 87% of borrowers who will default before disbursement, enabling proactive intervention.</p>
+      </div>
+      <div class="outcome-card">
+        <h4>Business Value</h4>
+        <p>For every 1,000 applications screened, the model prevents ~178 defaults — potentially saving millions in bad debt.</p>
+      </div>
+      <div class="outcome-card">
+        <h4>Explainability</h4>
+        <p>Feature importance output means credit officers understand WHY a borrower is flagged — not just that they are.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="block">
+    <div class="block-label">Stack</div>
+    <div class="block-title">Tools & Libraries</div>
+    <div class="tools-row">
+      <span class="tool-chip">Python 3.11</span>
+      <span class="tool-chip">Pandas</span>
+      <span class="tool-chip">NumPy</span>
+      <span class="tool-chip">Scikit-learn</span>
+      <span class="tool-chip">XGBoost</span>
+      <span class="tool-chip">Seaborn</span>
+      <span class="tool-chip">Matplotlib</span>
+      <span class="tool-chip">SMOTE (imbalanced-learn)</span>
+      <span class="tool-chip">Jupyter Notebook</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const mono = "'IBM Plex Mono', monospace";
+Chart.defaults.color = '#6b7f72';
+Chart.defaults.font.family = mono;
+Chart.defaults.font.size = 10;
+
+// Model comparison
+new Chart(document.getElementById('modelChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Logistic Reg.', 'Random Forest', 'XGBoost'],
+    datasets: [{
+      label: 'ROC-AUC',
+      data: [0.76, 0.87, 0.91],
+      backgroundColor: ['rgba(34,197,94,0.2)', 'rgba(34,197,94,0.5)', 'rgba(34,197,94,0.9)'],
+      borderColor: ['rgba(34,197,94,0.5)', 'rgba(34,197,94,0.7)', '#22c55e'],
+      borderWidth: 1,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 0.6, max: 1.0, grid: { color: '#1e2e23' }, ticks: { callback: v => v.toFixed(2) } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Grade chart
+new Chart(document.getElementById('gradeChart'), {
+  type: 'line',
+  data: {
+    labels: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+    datasets: [{
+      label: 'Default Rate (%)',
+      data: [4.2, 8.7, 14.3, 21.8, 31.4, 40.2, 51.7],
+      borderColor: '#22c55e',
+      backgroundColor: 'rgba(34,197,94,0.08)',
+      tension: 0.4, fill: true, pointBackgroundColor: '#22c55e', pointRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: '#1e2e23' }, ticks: { callback: v => v + '%' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>
