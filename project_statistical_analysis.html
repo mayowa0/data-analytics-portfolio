@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fintech Statistical Analysis · Mayowa Alamutu</title>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,300;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #fafaf8;
+    --ink: #1a1a2e;
+    --surface: #ffffff;
+    --surface2: #f4f4f0;
+    --purple: #6d28d9;
+    --purple-light: #8b5cf6;
+    --purple-pale: #ede9fe;
+    --teal: #0f766e;
+    --teal-light: #14b8a6;
+    --amber: #d97706;
+    --red: #dc2626;
+    --green: #16a34a;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Outfit', sans-serif; font-size: 14px; line-height: 1.7; }
+
+  .back-bar { padding: 18px 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .back-link { text-decoration: none; color: var(--muted); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; transition: color 0.2s; }
+  .back-link:hover { color: var(--purple); }
+  .github-link { text-decoration: none; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; color: var(--purple); border: 1px solid var(--purple); padding: 8px 18px; transition: all 0.2s; }
+  .github-link:hover { background: var(--purple); color: white; }
+
+  /* HERO */
+  .hero { background: var(--ink); color: white; padding: 80px 56px 64px; }
+  .hero-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: center; }
+  .hero-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .hero-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--purple); }
+  .hero-title { font-family: 'Spectral', serif; font-size: clamp(36px, 4.5vw, 60px); font-weight: 600; line-height: 1.05; letter-spacing: -1px; margin-bottom: 20px; }
+  .hero-title em { color: var(--purple-light); font-style: italic; }
+  .hero-sub { font-size: 16px; font-weight: 300; color: rgba(255,255,255,0.65); line-height: 1.7; margin-bottom: 32px; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.55); }
+  .tag.active { border-color: var(--purple-light); color: var(--purple-light); }
+
+  /* METHODS TABLE */
+  .methods-table { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+  .methods-row { display: grid; grid-template-columns: 36px 1fr 1fr 1fr; gap: 0; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.07); align-items: center; }
+  .methods-row.header { background: rgba(109,40,217,0.3); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--purple-light); font-weight: 600; }
+  .methods-row:last-child { border-bottom: none; }
+  .methods-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--purple-light); }
+  .methods-method { font-size: 13px; font-weight: 600; color: white; }
+  .methods-q { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .methods-tools { font-size: 11px; color: rgba(255,255,255,0.4); font-family: 'JetBrains Mono', monospace; }
+
+  /* BODY */
+  .body { max-width: 1100px; margin: 0 auto; padding: 64px 56px 96px; }
+  .block { margin-bottom: 72px; }
+  .block-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--purple); margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+  .block-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .block-title { font-family: 'Spectral', serif; font-size: 30px; font-weight: 600; line-height: 1.2; margin-bottom: 14px; }
+  .block-text { font-size: 15px; font-weight: 300; color: #374151; line-height: 1.8; max-width: 720px; }
+
+  /* SECTION CARDS */
+  .sections-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+  .section-card { border: 1px solid var(--border); padding: 32px; background: var(--surface); transition: border-color 0.2s, transform 0.2s; position: relative; overflow: hidden; }
+  .section-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 0; transition: height 0.3s; }
+  .section-card:hover::before { height: 100%; }
+  .s1::before { background: var(--purple); }
+  .s2::before { background: var(--teal); }
+  .s3::before { background: var(--amber); }
+  .s4::before { background: var(--red); }
+  .section-card:hover { border-color: transparent; transform: translateY(-3px); }
+  .sec-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .sec-method { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
+  .s1 .sec-method { color: var(--purple); }
+  .s2 .sec-method { color: var(--teal); }
+  .s3 .sec-method { color: var(--amber); }
+  .s4 .sec-method { color: var(--red); }
+  .sec-title { font-family: 'Spectral', serif; font-size: 20px; font-weight: 600; margin-bottom: 12px; line-height: 1.3; }
+  .sec-text { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .sec-result { margin-top: 16px; padding: 12px 16px; font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+  .s1 .sec-result { background: var(--purple-pale); color: var(--purple); }
+  .s2 .sec-result { background: #ccfbf1; color: var(--teal); }
+  .s3 .sec-result { background: #fef3c7; color: var(--amber); }
+  .s4 .sec-result { background: #fee2e2; color: var(--red); }
+
+  /* CHARTS */
+  .chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+  .chart-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 20px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); padding: 24px; }
+  .chart-card.wide { grid-column: span 2; }
+  .chart-card h4 { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+  .chart-card .hypothesis { font-size: 11px; color: var(--muted); margin-bottom: 14px; padding: 8px 12px; background: var(--surface2); border-left: 3px solid var(--purple); font-family: 'JetBrains Mono', monospace; }
+  .chart-wrap { position: relative; height: 200px; }
+  .chart-wrap.tall { height: 250px; }
+
+  /* STAT BADGES */
+  .stat-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .stat-badge { padding: 6px 14px; font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .badge-green  { background: #dcfce7; color: var(--green); }
+  .badge-purple { background: var(--purple-pale); color: var(--purple); }
+  .badge-teal   { background: #ccfbf1; color: var(--teal); }
+  .badge-amber  { background: #fef3c7; color: var(--amber); }
+  .badge-red    { background: #fee2e2; color: var(--red); }
+
+  /* SUMMARY TABLE */
+  .summary-table { width: 100%; border-collapse: collapse; margin-top: 28px; font-size: 13px; }
+  .summary-table th { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--border); padding: 10px 16px; text-align: left; }
+  .summary-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .summary-table tr:hover td { background: var(--surface2); }
+  .verdict-pass { color: var(--green); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .p-val { font-family: 'JetBrains Mono', monospace; color: var(--purple); font-weight: 600; }
+
+  /* TOOLS */
+  .tools-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .tool { background: var(--ink); color: white; padding: 7px 16px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
+
+  @media (max-width: 900px) {
+    .back-bar, .hero, .body { padding-left: 24px; padding-right: 24px; }
+    .hero-inner { grid-template-columns: 1fr; }
+    .sections-grid, .chart-grid-2, .chart-grid-3 { grid-template-columns: 1fr; }
+    .chart-card.wide { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back-bar">
+  <a class="back-link" href="index.html">&#8592; Back to Portfolio</a>
+  <a class="github-link" href="https://github.com/mayowa0/data-analytics-portfolio/blob/main/fintech_statistical_analysis.ipynb" target="_blank">&#128196; View Full Notebook on GitHub &#8599;</a>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Statistics · Inferential Analysis</div>
+      <h1 class="hero-title">Fintech Growth<br>Analytics — <em>A Statistical</em><br><em>Deep Dive</em></h1>
+      <p class="hero-sub">Four statistical frameworks applied to a Nigerian digital lending dataset — combining academic rigour with practical business interpretation.</p>
+      <div class="tag-row">
+        <span class="tag active">A/B Testing</span>
+        <span class="tag active">OLS Regression</span>
+        <span class="tag active">Time Series</span>
+        <span class="tag active">ANOVA</span>
+        <span class="tag active">Chi-Square</span>
+        <span class="tag">scipy · statsmodels</span>
+        <span class="tag">Hypothesis Testing</span>
+        <span class="tag">Confidence Intervals</span>
+      </div>
+    </div>
+    <div>
+      <div class="methods-table">
+        <div class="methods-row header">
+          <div></div>
+          <div>Method</div>
+          <div>Question</div>
+          <div>Library</div>
+        </div>
+        <div class="methods-row">
+          <div class="methods-num">01</div>
+          <div class="methods-method">A/B Test</div>
+          <div class="methods-q">Did new UI improve conversion?</div>
+          <div class="methods-tools">statsmodels</div>
+        </div>
+        <div class="methods-row">
+          <div class="methods-num">02</div>
+          <div class="methods-method">OLS Regression</div>
+          <div class="methods-q">What predicts repayment amount?</div>
+          <div class="methods-tools">statsmodels · OLS</div>
+        </div>
+        <div class="methods-row">
+          <div class="methods-num">03</div>
+          <div class="methods-method">Time Series</div>
+          <div class="methods-q">Forecast Q2 disbursements</div>
+          <div class="methods-tools">Holt-Winters</div>
+        </div>
+        <div class="methods-row">
+          <div class="methods-num">04</div>
+          <div class="methods-method">Chi-Sq + ANOVA</div>
+          <div class="methods-q">Default rates differ by tier?</div>
+          <div class="methods-tools">scipy.stats</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+  <!-- SECTION CARDS -->
+  <div class="block">
+    <div class="block-label">Four Analyses</div>
+    <div class="block-title">One Cohesive Story</div>
+    <p class="block-text">Each section answers a distinct business question using a different statistical method — but all four converge on the same insight: income stability and credit tier are the primary levers in a digital lending business.</p>
+    <div class="sections-grid">
+      <div class="section-card s1">
+        <div class="sec-num">Section 01</div>
+        <div class="sec-method">A/B Hypothesis Testing</div>
+        <div class="sec-title">Did the new loan application UI significantly improve conversion?</div>
+        <div class="sec-text">Two-proportion z-test (one-tailed) comparing conversion rates between 3,200 control users (old UI) and 3,150 treatment users (new simplified bank statement upload). Validated with Mann-Whitney U for robustness. Effect size via Cohen's h. Statistical power calculated.</div>
+        <div class="sec-result">p &lt; 0.001 · +3.6pp lift · Cohen's h = 0.09 · Power = 84%</div>
+      </div>
+      <div class="section-card s2">
+        <div class="sec-num">Section 02</div>
+        <div class="sec-method">Multiple Linear Regression</div>
+        <div class="sec-title">What borrower features best predict loan repayment amount?</div>
+        <div class="sec-text">OLS regression on log-transformed repayment amount. Full assumptions testing: Shapiro-Wilk normality, Levene homoscedasticity, VIF multicollinearity check, Q-Q plot and residual diagnostics. Six predictors including income, credit score, tenure, and employment type.</div>
+        <div class="sec-result">Adj. R² = 0.72 · F-stat significant · All VIF &lt; 5</div>
+      </div>
+      <div class="section-card s3">
+        <div class="sec-num">Section 03</div>
+        <div class="sec-method">Time Series Forecasting</div>
+        <div class="sec-title">Can we forecast next quarter's disbursements from historical trends?</div>
+        <div class="sec-text">18 months of weekly disbursement data. ADF stationarity test → seasonal decomposition → Holt-Winters exponential smoothing model. Bootstrap-simulated 80% and 95% prediction intervals. Validated on held-out 13-week test set.</div>
+        <div class="sec-result">MAPE &lt; 5% on validation · Q2 forecast: ₦2.8B ±10%</div>
+      </div>
+      <div class="section-card s4">
+        <div class="sec-num">Section 04</div>
+        <div class="sec-method">Chi-Square + One-Way ANOVA</div>
+        <div class="sec-title">Are default rates significantly different across borrower tiers?</div>
+        <div class="sec-text">Chi-square test of independence (default status × loan tier) with Cramér's V effect size. One-way ANOVA on repayment amounts across income segments, with Levene test for equal variances and Bonferroni-corrected post-hoc pairwise comparisons.</div>
+        <div class="sec-result">χ² significant · η² = 0.41 (large effect) · All post-hoc pairs significant</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="block">
+    <div class="block-label">Key Results</div>
+    <div class="block-title">Statistical Outputs — Interactive</div>
+
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <h4>Section 01 — A/B Test: Conversion Rate + 95% CI</h4>
+        <div class="hypothesis">H₀: p_B = p_A &nbsp;|&nbsp; H₁: p_B > p_A &nbsp;|&nbsp; α = 0.05</div>
+        <div class="chart-wrap">
+          <canvas id="abChart"></canvas>
+        </div>
+        <div class="stat-badges">
+          <span class="stat-badge badge-green">p &lt; 0.001 ✓</span>
+          <span class="stat-badge badge-purple">Lift: +3.6pp</span>
+          <span class="stat-badge badge-purple">Cohen's h = 0.09</span>
+          <span class="stat-badge badge-teal">Power = 84%</span>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h4>Section 02 — Regression: Coefficient Plot</h4>
+        <div class="hypothesis">DV: log(repayment) &nbsp;|&nbsp; 6 predictors &nbsp;|&nbsp; OLS</div>
+        <div class="chart-wrap">
+          <canvas id="regChart"></canvas>
+        </div>
+        <div class="stat-badges">
+          <span class="stat-badge badge-purple">Adj. R² = 0.72</span>
+          <span class="stat-badge badge-green">F-stat: p &lt; 0.001</span>
+          <span class="stat-badge badge-teal">All VIF &lt; 5 ✓</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid-3">
+      <div class="chart-card wide">
+        <h4>Section 03 — Time Series: Holt-Winters Forecast with Prediction Intervals</h4>
+        <div class="chart-wrap tall">
+          <canvas id="tsChart"></canvas>
+        </div>
+        <div class="stat-badges">
+          <span class="stat-badge badge-amber">ADF: Stationary ✓</span>
+          <span class="stat-badge badge-amber">MAPE &lt; 5%</span>
+          <span class="stat-badge badge-amber">Q2 Forecast: ₦2.8B</span>
+          <span class="stat-badge badge-amber">95% PI shown</span>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h4>Section 04 — Default Rate by Borrower Tier</h4>
+        <div class="hypothesis">H₀: Default ⊥ Tier &nbsp;|&nbsp; Chi-Square test</div>
+        <div class="chart-wrap">
+          <canvas id="chiChart"></canvas>
+        </div>
+        <div class="stat-badges">
+          <span class="stat-badge badge-red">χ²: p &lt; 0.001 ✓</span>
+          <span class="stat-badge badge-red">Cramér's V = 0.22</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="block">
+    <div class="block-label">Summary</div>
+    <div class="block-title">All Results at a Glance</div>
+    <table class="summary-table">
+      <tr>
+        <th>Section</th>
+        <th>Test</th>
+        <th>H₀</th>
+        <th>Test Statistic</th>
+        <th>P-value</th>
+        <th>Effect Size</th>
+        <th>Decision</th>
+      </tr>
+      <tr>
+        <td><strong>01</strong></td>
+        <td>Two-proportion z-test</td>
+        <td>p_B = p_A</td>
+        <td>z = 4.12</td>
+        <td class="p-val">&lt; 0.001</td>
+        <td>Cohen's h = 0.09</td>
+        <td class="verdict-pass">Reject H₀ ✓</td>
+      </tr>
+      <tr>
+        <td><strong>02</strong></td>
+        <td>OLS Regression (F-test)</td>
+        <td>All β = 0</td>
+        <td>F = 484.2</td>
+        <td class="p-val">&lt; 0.001</td>
+        <td>Adj. R² = 0.72</td>
+        <td class="verdict-pass">Reject H₀ ✓</td>
+      </tr>
+      <tr>
+        <td><strong>03</strong></td>
+        <td>ADF Stationarity</td>
+        <td>Unit root present</td>
+        <td>ADF = −3.84</td>
+        <td class="p-val">0.003</td>
+        <td>MAPE = 4.8%</td>
+        <td class="verdict-pass">Reject H₀ ✓</td>
+      </tr>
+      <tr>
+        <td><strong>04A</strong></td>
+        <td>Chi-Square</td>
+        <td>Default ⊥ Tier</td>
+        <td>χ² = 118.4</td>
+        <td class="p-val">&lt; 0.001</td>
+        <td>Cramér's V = 0.22</td>
+        <td class="verdict-pass">Reject H₀ ✓</td>
+      </tr>
+      <tr>
+        <td><strong>04B</strong></td>
+        <td>One-Way ANOVA</td>
+        <td>μ₁ = μ₂ = μ₃</td>
+        <td>F = 892.1</td>
+        <td class="p-val">&lt; 0.001</td>
+        <td>η² = 0.41 (large)</td>
+        <td class="verdict-pass">Reject H₀ ✓</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="block">
+    <div class="block-label">Stack</div>
+    <div class="block-title">Libraries & Methods</div>
+    <div class="tools-row">
+      <span class="tool">Python 3.11</span>
+      <span class="tool">scipy.stats</span>
+      <span class="tool">statsmodels</span>
+      <span class="tool">pandas</span>
+      <span class="tool">NumPy</span>
+      <span class="tool">Seaborn</span>
+      <span class="tool">Matplotlib</span>
+      <span class="tool">Holt-Winters</span>
+      <span class="tool">Bootstrapping</span>
+      <span class="tool">VIF / Multicollinearity</span>
+      <span class="tool">Bonferroni Correction</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+Chart.defaults.color = '#6b7280';
+Chart.defaults.font.family = "'Outfit', sans-serif";
+Chart.defaults.font.size = 11;
+
+const border = '#e5e7eb';
+
+// A/B Test
+new Chart(document.getElementById('abChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Control (A)\nOld UI', 'Treatment (B)\nNew UI'],
+    datasets: [{
+      data: [19.8, 23.4],
+      backgroundColor: ['rgba(220,38,38,0.7)', 'rgba(22,163,74,0.7)'],
+      borderColor:     ['#dc2626', '#16a034'],
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 15, max: 28, grid: { color: border }, ticks: { callback: v => v+'%' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Regression coefficients
+new Chart(document.getElementById('regChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Log Income','Credit Score','Tenure','Loan Tier','Salaried','Self-Employed'],
+    datasets: [{
+      data: [0.45, 0.0018, 0.0008, 0.55, 0.62, -0.38],
+      backgroundColor: ctx => ctx.raw >= 0 ? 'rgba(109,40,217,0.75)' : 'rgba(220,38,38,0.7)',
+      borderWidth: 0
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: border }, ticks: { callback: v => v.toFixed(3) } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// Time series
+const weeks = Array.from({length: 78}, (_, i) => i + 1);
+const forecast_start = 65;
+const actual = weeks.map(w => {
+  const trend = 280 + (940-280)/78 * w;
+  const seasonal = 35 * Math.sin(2 * Math.PI * w / 52);
+  return +(trend + seasonal + (Math.random()-0.5)*40).toFixed(1);
+});
+const forecastWeeks = Array.from({length: 13}, (_, i) => 79+i);
+const forecastVals  = forecastWeeks.map(w => {
+  const trend = 280 + (940-280)/78 * w;
+  const seasonal = 35 * Math.sin(2 * Math.PI * w / 52);
+  return +(trend + seasonal).toFixed(1);
+});
+const pi95lo = forecastVals.map((v, i) => +(v - 45 - i*3).toFixed(1));
+const pi95hi = forecastVals.map((v, i) => +(v + 45 + i*3).toFixed(1));
+
+new Chart(document.getElementById('tsChart'), {
+  type: 'line',
+  data: {
+    labels: [...weeks.map(w => `W${w}`), ...forecastWeeks.map(w => `W${w}*`)],
+    datasets: [
+      { label: 'Historical', data: [...actual, ...Array(13).fill(null)], borderColor: '#6d28d9', borderWidth: 1.5, pointRadius: 0, tension: 0.3 },
+      { label: 'Forecast', data: [...Array(78).fill(null), ...forecastVals], borderColor: '#d97706', borderWidth: 2.5, pointRadius: 3, tension: 0.3, pointBackgroundColor: '#d97706' },
+      { label: '95% PI', data: [...Array(78).fill(null), ...pi95hi], borderColor: 'rgba(217,119,6,0.0)', backgroundColor: 'rgba(217,119,6,0.12)', fill: '+1', pointRadius: 0 },
+      { label: '', data: [...Array(78).fill(null), ...pi95lo], borderColor: 'rgba(217,119,6,0.0)', fill: false, pointRadius: 0 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, filter: item => item.text !== '' } } },
+    scales: {
+      y: { grid: { color: border }, ticks: { callback: v => '₦'+v+'m' } },
+      x: { grid: { display: false }, ticks: { maxTicksLimit: 12 } }
+    }
+  }
+});
+
+// Chi-square
+new Chart(document.getElementById('chiChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Tier 0', 'Tier 1', 'Tier 2'],
+    datasets: [
+      { label: 'No Default', data: [72, 86, 94], backgroundColor: 'rgba(22,163,74,0.7)', borderWidth: 0 },
+      { label: 'Default',    data: [28, 14,  6], backgroundColor: 'rgba(220,38,38,0.7)', borderWidth: 0 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } },
+    scales: {
+      x: { stacked: true, grid: { display: false } },
+      y: { stacked: true, grid: { color: border }, ticks: { callback: v => v+'%' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
